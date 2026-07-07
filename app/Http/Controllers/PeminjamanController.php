@@ -9,6 +9,8 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\NotifikasiPeminjamanMail;
 use App\Models\User;
+use App\Models\Lab;
+use App\Models\JadwalKuliah;
 
 class PeminjamanController extends Controller
 {
@@ -19,12 +21,50 @@ class PeminjamanController extends Controller
         $request->validate([
             //'id_user' => 'required|integer',
             'id_lab' => 'required|integer',
-            'tgl_mulai' => 'required|date',
-            'tgl_selesai' => 'required|date',
+            'tgl_mulai' => 'required|date|after_or_equal:today',
+            'tgl_selesai' => 'required|date|after_or_equal:tgl_mulai',
             'jam_mulai' => 'required',
             'jam_selesai' => 'required',
             'keterangan' => 'required|string',
+            'daftar_nama' => 'required|string',
+            'ketua_kegiatan' => 'required|string',
+            'kontak_ketua' => 'required|string',
         ]);
+
+        // 1.5 Cek Bentrok Jadwal Mata Kuliah Rutin
+        $map_hari = [
+            'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu', 
+            'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu', 'Sunday' => 'Minggu'
+        ];
+        $hari_indo = $map_hari[Carbon::parse($request->tgl_mulai)->format('l')];
+
+        $bentrokKuliah = JadwalKuliah::where('id_lab', $request->id_lab)
+            ->where('hari', $hari_indo)
+            ->where(function ($query) use ($request) {
+                $query->where('jam_mulai', '<', $request->jam_selesai)
+                      ->where('jam_selesai', '>', $request->jam_mulai);
+            })->first();
+
+        if ($bentrokKuliah) {
+            return response()->json([
+                'message' => 'Peminjaman gagal: Jadwal berbenturan dengan mata kuliah rutin ('.$bentrokKuliah->mata_kuliah.').'
+            ], 422);
+        }
+
+        // 1.6 Cek Bentrok Peminjaman Insidental Lainnya
+        $bentrokPeminjaman = Peminjaman::where('id_lab', $request->id_lab)
+            ->whereDate('tgl_mulai', $request->tgl_mulai)
+            ->whereIn('status', ['pending', 'approved'])
+            ->where(function ($query) use ($request) {
+                $query->where('jam_mulai', '<', $request->jam_selesai)
+                      ->where('jam_selesai', '>', $request->jam_mulai);
+            })->exists();
+
+        if ($bentrokPeminjaman) {
+            return response()->json([
+                'message' => 'Peminjaman gagal: Ruangan sudah dibooking/digunakan pada jam tersebut.'
+            ], 422);
+        }
 
        // 2. Logika Penentuan Level Approval
         $tanggal_mulai = Carbon::parse($request->tgl_mulai);
@@ -54,6 +94,9 @@ class PeminjamanController extends Controller
             'jam_mulai' => $request->jam_mulai,
             'jam_selesai' => $request->jam_selesai,
             'keterangan' => $request->keterangan,
+            'daftar_nama' => $request->daftar_nama,
+            'ketua_kegiatan' => $request->ketua_kegiatan,
+            'kontak_ketua' => $request->kontak_ketua,
             'level' => $level,
             'status' => 'pending', //status awal selalu pending
         ]);
@@ -71,7 +114,8 @@ class PeminjamanController extends Controller
     //1.Menampilkan halaman form di browser
     public function createWeb()
     {
-        return view('peminjaman.create');
+        $labs = Lab::all();
+        return view('peminjaman.create', compact('labs'));
     }
 
     //2. Memproses Data dari Form Web HTML
@@ -80,12 +124,46 @@ class PeminjamanController extends Controller
         //.1 Validasi input form web
         $request->validate([
             'id_lab'=>'required|integer',
-            'tgl_mulai'=>'required|date',
+            'tgl_mulai'=>'required|date|after_or_equal:today',
             'tgl_selesai'=>'required|date|after_or_equal:tgl_mulai',
             'jam_mulai'=>'required',
             'jam_selesai'=>'required',
             'keterangan'=>'required|string',
+            'daftar_nama'=>'required|string',
+            'ketua_kegiatan'=>'required|string',
+            'kontak_ketua'=>'required|string',
         ]);
+
+        // 1.5 Cek Bentrok Jadwal Mata Kuliah Rutin
+        $map_hari = [
+            'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu', 
+            'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu', 'Sunday' => 'Minggu'
+        ];
+        $hari_indo = $map_hari[Carbon::parse($request->tgl_mulai)->format('l')];
+
+        $bentrokKuliah = JadwalKuliah::where('id_lab', $request->id_lab)
+            ->where('hari', $hari_indo)
+            ->where(function ($query) use ($request) {
+                $query->where('jam_mulai', '<', $request->jam_selesai)
+                      ->where('jam_selesai', '>', $request->jam_mulai);
+            })->first();
+
+        if ($bentrokKuliah) {
+            return back()->withErrors('Peminjaman gagal: Jadwal berbenturan dengan mata kuliah rutin ('.$bentrokKuliah->mata_kuliah.') pada jam tersebut.')->withInput();
+        }
+
+        // 1.6 Cek Bentrok Peminjaman Insidental Lainnya
+        $bentrokPeminjaman = Peminjaman::where('id_lab', $request->id_lab)
+            ->whereDate('tgl_mulai', $request->tgl_mulai)
+            ->whereIn('status', ['pending', 'approved'])
+            ->where(function ($query) use ($request) {
+                $query->where('jam_mulai', '<', $request->jam_selesai)
+                      ->where('jam_selesai', '>', $request->jam_mulai);
+            })->exists();
+
+        if ($bentrokPeminjaman) {
+            return back()->withErrors('Peminjaman gagal: Ruangan sudah dibooking/digunakan pada jam tersebut. Silakan cek menu Status Ruangan.')->withInput();
+        }
 
         //2. Logika Penentuan Level Approval
         $tanggal_mulai = Carbon::parse($request->tgl_mulai);
@@ -110,6 +188,9 @@ class PeminjamanController extends Controller
             'jam_mulai' => $request->jam_mulai,
             'jam_selesai' => $request->jam_selesai,
             'keterangan' => $request->keterangan,
+            'daftar_nama' => $request->daftar_nama,
+            'ketua_kegiatan' => $request->ketua_kegiatan,
+            'kontak_ketua' => $request->kontak_ketua,
             'level' => $level,
             'status' => 'pending', //status awal selalu pending
 
@@ -133,7 +214,11 @@ class PeminjamanController extends Controller
          //mengambil data mahasiswa yang sedang login   
          $mahasiswa = Auth::user();
 
-            Mail::to($approver->email)->send(new NotifikasiPeminjamanMail($peminjaman_baru, $mahasiswa));
+            // Generate Signed URLs untuk fitur One-Click Approval Email
+            $approveUrl = \Illuminate\Support\Facades\URL::signedRoute('peminjaman.email_approve', ['id' => $peminjaman_baru->id]);
+            $rejectUrl = \Illuminate\Support\Facades\URL::signedRoute('peminjaman.email_reject', ['id' => $peminjaman_baru->id]);
+
+            Mail::to($approver->email)->send(new NotifikasiPeminjamanMail($peminjaman_baru, $mahasiswa, $approveUrl, $rejectUrl));
          }
 
         //4. Redirect kembali ke halaman dashboard dengan pesan sukses
@@ -141,4 +226,89 @@ class PeminjamanController extends Controller
 
     }
 
+    //3. Menampilkan halaman detail persetujuan
+    public function showWeb($id)
+    {
+        // Memanfaatkan Relasi Eloquent (Eager Loading) agar lebih efisien dan bersih
+        $peminjaman = Peminjaman::with(['user', 'lab'])->findOrFail($id);
+        
+        $lab = $peminjaman->lab;
+        $mahasiswa = $peminjaman->user;
+
+        return view('peminjaman.show', compact('peminjaman', 'lab', 'mahasiswa'));
+    }
+
+    // 4. Fitur Cek Status Ruangan
+    public function cekStatus(Request $request)
+    {
+        $id_lab = $request->id_lab;
+        $tanggal = $request->tanggal;
+
+        $labs = Lab::all();
+        
+        // Default pencarian adalah hari ini jika belum memilih
+        if (!$tanggal) {
+            $tanggal = Carbon::today()->toDateString();
+        }
+
+        // Tentukan Hari dalam Bahasa Indonesia
+        $map_hari = [
+            'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu', 
+            'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu', 'Sunday' => 'Minggu'
+        ];
+        $hari_indo = $map_hari[Carbon::parse($tanggal)->format('l')];
+
+        // 1. Cari jadwal Peminjaman (Insidental)
+        $queryPeminjaman = Peminjaman::with('lab')
+                    ->whereIn('status', ['pending', 'approved'])
+                    ->whereDate('tgl_mulai', $tanggal);
+        if ($id_lab) {
+            $queryPeminjaman->where('id_lab', $id_lab);
+        }
+        $dataPeminjaman = $queryPeminjaman->get()->map(function ($item) {
+            $item->tipe_jadwal = 'peminjaman';
+            return $item;
+        });
+
+        // 2. Cari Jadwal Kuliah Rutin
+        $queryJadwal = JadwalKuliah::with('lab')->where('hari', $hari_indo);
+        if ($id_lab) {
+            $queryJadwal->where('id_lab', $id_lab);
+        }
+        $dataJadwal = $queryJadwal->get()->map(function ($item) {
+            $item->tipe_jadwal = 'kuliah';
+            return $item;
+        });
+
+        // 3. Gabungkan dan Urutkan berdasarkan jam mulai
+        $jadwal = $dataPeminjaman->concat($dataJadwal)->sortBy('jam_mulai')->values();
+
+        return view('peminjaman.cek_status', compact('labs', 'jadwal', 'id_lab', 'tanggal'));
+    }
+
+    // 5. Fitur One-Click Approval Email (Approve)
+    public function emailApprove($id)
+    {
+        $peminjaman = Peminjaman::findOrFail($id);
+        
+        if ($peminjaman->status != 'pending') {
+            return "<div style='font-family: sans-serif; padding: 20px; text-align: center;'><h2>Maaf, link kadaluarsa!</h2><p>Status peminjaman ini sudah tidak bisa diubah (Status saat ini: <b>{$peminjaman->status}</b>).</p></div>";
+        }
+
+        $peminjaman->update(['status' => 'approved']);
+        return "<div style='font-family: sans-serif; padding: 20px; text-align: center; color: #16a34a;'><h2>Berhasil!</h2><p>Terima kasih, status peminjaman berhasil diperbarui menjadi <b>DISETUJUI</b>.</p></div>";
+    }
+
+    // 6. Fitur One-Click Approval Email (Reject)
+    public function emailReject($id)
+    {
+        $peminjaman = Peminjaman::findOrFail($id);
+        
+        if ($peminjaman->status != 'pending') {
+            return "<div style='font-family: sans-serif; padding: 20px; text-align: center;'><h2>Maaf, link kadaluarsa!</h2><p>Status peminjaman ini sudah tidak bisa diubah (Status saat ini: <b>{$peminjaman->status}</b>).</p></div>";
+        }
+
+        $peminjaman->update(['status' => 'rejected']);
+        return "<div style='font-family: sans-serif; padding: 20px; text-align: center; color: #dc2626;'><h2>Berhasil!</h2><p>Terima kasih, status peminjaman berhasil diperbarui menjadi <b>DITOLAK</b>.</p></div>";
+    }
 }

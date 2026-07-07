@@ -3,61 +3,69 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Rfid;
+use App\Models\User;
 use App\Models\Peminjaman;
 use Carbon\Carbon;
 
 class RfidController extends Controller
 {
-    public function checkAccess(Request $request){
-    //1. Validasi  input dari ESP32 (Butuh UID Kartu dan ID Lab tempat alat dipasang)
-    $request->validate([
-        'uid' => 'required|string',
-        'id_lab' => 'required|integer',
-    ]);
-        $uid = $request->uid;
-        $id_lab = $request->id_lab;
+    public function checkAccess(Request $request, $uid, $id_lab)
+    {
+        // // 1. Validasi input dari Raspberry Pi (Butuh UID Kartu dan ID Lab)
+        // $request->validate([
+        //     'uid' => 'required|string',
+        //     'id_lab' => 'required|integer',
+        // ]);
+
+        // $uid = $request->uid;
+        // $id_lab = 3;
        
-    //2. Cek apakah kartu terdaftar dan aktif di tabel rfid
-    $rfid = Rfid::where('uid_tag', $uid)->where('status', 'aktif')->first();
+        // 2. Cari User berdasarkan UID Kartu
+        $user = User::where('rfid_uid', $uid)->first();
 
-    if (!$rfid) {
-        return response()->json([
-            'status' => 'denied',
-            'message' => 'Akses ditolak: Kartu tidak terdaftar atau tidak aktif.'
-        ], 403);
-    }
+        if (!$user) {
+            return response()->json([
+                'status' => 'denied',
+                'message' => 'Akses ditolak: Kartu tidak terdaftar.'
+            ], 403);
+        }
 
-    $id_user = $rfid->id_user;
+        // 3. Hak Akses Bypass (Universal) untuk Staff
+        if (in_array($user->role, ['laboran', 'kajur', 'wadir'])) {
+            return response()->json([
+                'status' => 'granted',
+                'user' => $user->username,
+                'message' => 'Akses Staff Diterima: Silahkan Masuk.'
+            ], 200);
+        }
 
-    //3. Ambil waktu server saat ini (Real-time)
-    $now = Carbon::now();
-    $tanggal_sekarang = $now->toDateString();
-    $jam_sekarang = $now->toTimeString();
+        // 4. Hak Akses Mahasiswa (Cek Jadwal Peminjaman)
+        $now = Carbon::now();
+        $tanggal_sekarang = $now->toDateString();
+        $jam_sekarang = $now->format('H:i:s');
 
-    //4. Cek apakah user memiliki jadwal 'approved' di lab tersebut pada jam ini
-    $peminjaman = Peminjaman::where('id_user', $id_user)
-                    ->where('id_lab', $id_lab)
-                    ->where('status', 'approved')
-                    ->where('tgl_mulai', '<=', $tanggal_sekarang)
-                    ->where('tgl_selesai', '>=', $tanggal_sekarang)
-                    ->where('jam_mulai', '<=', $jam_sekarang)
-                    ->where('jam_selesai', '>=', $jam_sekarang)
-                    ->first();
+        // Cek apakah mahasiswa ini memiliki peminjaman 'approved' di lab dan waktu saat ini
+        $peminjaman = Peminjaman::where('id_user', $user->id_user)
+            ->where('id_lab', $id_lab)
+            ->where('status', 'approved')
+            ->where('tgl_mulai', '<=', $tanggal_sekarang)
+            ->where('tgl_selesai', '>=', $tanggal_sekarang)
+            ->where('jam_mulai', '<=', $jam_sekarang)
+            ->where('jam_selesai', '>=', $jam_sekarang)
+            ->first();
 
-    //5. Berikan instruksi ke ESP32
-    if ($peminjaman) {
-        return response()->json([
-            'status' => 'granted', //untuk membuka pintu
-            'message' => 'Akses Diterima: Silahkan Masuk.'
-        ], 200);
-    }
-    else{
-        return response()->json([
-            'status' => 'denied', //untuk mengunci pintu
-            'message' => 'Akses Ditolak: Tidak ada jadlaw peminjaman aktif saat ini.'
-        ], 403);
-    }
-
+        // 5. Berikan instruksi ke Raspberry Pi
+        if ($peminjaman) {
+            return response()->json([
+                'status' => 'granted', 
+                'user' => $user->username,
+                'message' => 'Akses Diterima: Sesuai Jadwal Peminjaman.'
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => 'denied',
+                'message' => 'Akses Ditolak: Anda tidak memiliki jadwal peminjaman aktif saat ini.'
+            ], 403);
+        }
     }    
 }

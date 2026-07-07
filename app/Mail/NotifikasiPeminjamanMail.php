@@ -12,12 +12,16 @@ class NotifikasiPeminjamanMail extends Mailable
 
     public $peminjaman;
     public $mahasiswa;
+    public $approveUrl;
+    public $rejectUrl;
 
     //kita menangkap data peminjaman dan data mahasiswa yang mengajukan
-    public function __construct($peminjaman, $mahasiswa)
+    public function __construct($peminjaman, $mahasiswa, $approveUrl, $rejectUrl)
     {
         $this->peminjaman = $peminjaman;
         $this->mahasiswa = $mahasiswa;
+        $this->approveUrl = $approveUrl;
+        $this->rejectUrl = $rejectUrl;
     }
 
     public function build()

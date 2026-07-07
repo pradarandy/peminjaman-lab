@@ -34,30 +34,33 @@ class DashboardController extends Controller
            }
        }
 
-        //eksekusi query untuk mendapatkan datanya
-        $riwayat = $query->get();
+        // Query terpisah untuk Pagination (Tabel riwayat) - tetap sesuai role
+        $riwayat = $query->paginate(10);
 
-        // 1. Total Pengajuan Bulan Ini
+        // Data statistik global (tidak terpengaruh role), filter bulan ini
         $currentMonth = date('m');
         $currentYear = date('Y');
-        $totalBulanIni = $riwayat->filter(function($item) use ($currentMonth, $currentYear) {
-            return date('m', strtotime($item->tgl_mulai)) == $currentMonth && date('Y', strtotime($item->tgl_mulai)) == $currentYear;
-        })->count();
+        $globalRiwayat = Peminjaman::whereMonth('tgl_mulai', $currentMonth)
+                                   ->whereYear('tgl_mulai', $currentYear)
+                                   ->get();
 
-        // 2. Peminjaman Menunggu Persetujuan
-        $menungguPersetujuan = $riwayat->where('status', 'pending')->count();
+        // 1. Total Pengajuan Bulan Ini (Global)
+        $totalBulanIni = $globalRiwayat->count();
 
-        // 3. Pie Chart: Rasio Status
+        // 2. Peminjaman Menunggu Persetujuan (Global, Bulan Ini)
+        $menungguPersetujuan = $globalRiwayat->where('status', 'pending')->count();
+
+        // 3. Pie Chart: Rasio Status (Global, Bulan Ini)
         $statusCounts = [
-            'pending' => $riwayat->where('status', 'pending')->count(),
-            'approved' => $riwayat->where('status', 'approved')->count(),
-            'rejected' => $riwayat->where('status', 'rejected')->count(),
+            'pending' => $globalRiwayat->where('status', 'pending')->count(),
+            'approved' => $globalRiwayat->where('status', 'approved')->count(),
+            'rejected' => $globalRiwayat->where('status', 'rejected')->count(),
         ];
 
-        // 4. Bar Chart: Frekuensi Peminjaman Lab
+        // 4. Bar Chart: Frekuensi Peminjaman Lab (Global, Bulan Ini)
         $labModels = \App\Models\Lab::all()->keyBy('id_lab');
         $labCounts = [];
-        foreach ($riwayat as $item) {
+        foreach ($globalRiwayat as $item) {
             $labName = isset($labModels[$item->id_lab]) ? $labModels[$item->id_lab]->nama : 'Lab ' . $item->id_lab;
             if (!isset($labCounts[$labName])) {
                 $labCounts[$labName] = 0;

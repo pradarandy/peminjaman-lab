@@ -21,7 +21,26 @@ class Peminjaman extends Model
         'jam_mulai',
         'jam_selesai',
         'keterangan',
+        'daftar_nama',
+        'ketua_kegiatan',
+        'kontak_ketua',
         'level', // 1, 2, 3
         'status', // 'pending', 'approved', 'rejected'
     ];
+
+    /**
+     * Relasi ke model User (Mahasiswa peminjam)
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'id_user', 'id_user');
+    }
+
+    /**
+     * Relasi ke model Lab (Laboratorium yang dipinjam)
+     */
+    public function lab()
+    {
+        return $this->belongsTo(Lab::class, 'id_lab', 'id_lab');
+    }
 }

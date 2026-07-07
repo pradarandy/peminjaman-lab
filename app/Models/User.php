@@ -25,6 +25,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'rfid_uid',
     ];
 
     // Sembunyikan password saat data dipanggil (keamanan)

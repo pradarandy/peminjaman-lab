@@ -95,7 +95,8 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/login');
+        // Mengamankan URL redirect menggunakan fungsi route bawaan Laravel
+        return redirect()->route('dashboard')->with('success', 'Anda telah berhasil sign-out.');
     }
 
     //Fitur Register Web

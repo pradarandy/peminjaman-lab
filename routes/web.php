@@ -13,6 +13,12 @@ Route::get('/', function () {
 
 //Halaman Dashboard sekarang publik (tidak wajib login)
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('/peminjaman/detail/{id}', [PeminjamanController::class, 'showWeb'])->name('peminjaman.show');
+Route::get('/cek-status', [PeminjamanController::class, 'cekStatus'])->name('peminjaman.cek_status');
+
+// Rute untuk One-Click Approval Email (Menggunakan Signed URLs)
+Route::get('/peminjaman/{id}/email-approve', [PeminjamanController::class, 'emailApprove'])->name('peminjaman.email_approve')->middleware('signed');
+Route::get('/peminjaman/{id}/email-reject', [PeminjamanController::class, 'emailReject'])->name('peminjaman.email_reject')->middleware('signed');
 
 //Rute untuk menampilkan halaman form login
 Route::get('/login', function () {
@@ -37,5 +43,17 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout-web', [AuthController::class, 'logoutWeb']);
 
     Route::post('/peminjaman/{id}/approval-web', [ApprovalController::class, 'storeWeb']);
+
+    // Manajemen Akun (User Management)
+    Route::get('/users', [\App\Http\Controllers\UserController::class, 'index'])->name('users.index');
+    Route::post('/users', [\App\Http\Controllers\UserController::class, 'store'])->name('users.store');
+    
+    // Rute untuk update RFID mandiri (Semua User login)
+    Route::post('/profil/rfid', [\App\Http\Controllers\UserController::class, 'updateRfid'])->name('profil.rfid.update');
+
+    // Manajemen Jadwal Kuliah
+    Route::get('/jadwal', [\App\Http\Controllers\JadwalController::class, 'index'])->name('jadwal.index');
+    Route::post('/jadwal', [\App\Http\Controllers\JadwalController::class, 'store'])->name('jadwal.store');
+    Route::delete('/jadwal/{id}', [\App\Http\Controllers\JadwalController::class, 'destroy'])->name('jadwal.destroy');
 
 });

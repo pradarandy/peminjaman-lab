@@ -35,8 +35,11 @@
         </table>
 
         <div style="text-align: center; margin-top: 30px;">
-            <a href="{{ url('/dashboard') }}" style="background-color: #0d6efd; color: #ffffff; text-decoration: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; font-size: 16px;">
-                Buka Halaman Persetujuan
+            <a href="{{ $approveUrl }}" style="display: inline-block; background-color: #16a34a; color: #ffffff; text-decoration: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; font-size: 16px; margin: 0 10px; margin-bottom: 10px;">
+                Setujui Peminjaman
+            </a>
+            <a href="{{ $rejectUrl }}" style="display: inline-block; background-color: #dc2626; color: #ffffff; text-decoration: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; font-size: 16px; margin: 0 10px; margin-bottom: 10px;">
+                Tolak Peminjaman
             </a>
         </div>
 

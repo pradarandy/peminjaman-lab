@@ -6,6 +6,7 @@ use App\Models\Peminjaman;
 use Illuminate\Http\Request;
 use App\Models\Approval;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class ApprovalController extends Controller
 {
@@ -58,6 +59,31 @@ class ApprovalController extends Controller
         if (!$peminjaman) {
             return back()->withErrors('Data peminjaman tidak ditemukan.');
         }
+
+        // Validasi Otorisasi: Pastikan role User sesuai dengan level dokumen peminjaman
+        $userRole = Auth::user()->role;
+        $authorized = false;
+
+        if ($peminjaman->level == '1' && $userRole == 'laboran') {
+            $authorized = true;
+        } elseif ($peminjaman->level == '2' && $userRole == 'kajur') {
+            $authorized = true;
+        } elseif ($peminjaman->level == '3' && $userRole == 'wadir') {
+            $authorized = true;
+        } // Anda bisa tambahkan `elseif ($userRole == 'admin') { $authorized = true; }` di sini jika ada superadmin
+
+        if (!$authorized) {
+            return back()->withErrors('Akses Ditolak: Anda tidak memiliki wewenang untuk menyetujui peminjaman ini.');
+        }
+
+        // Catat ke riwayat persetujuan
+        Approval::create([
+            'id_peminjaman' => $peminjaman->id,
+            'id_approver' => Auth::user()->id_user,
+            'level' => $peminjaman->level,
+            'status' => $request->status,
+            'tgl_acc' => Carbon::now(),
+        ]);
 
         //Update status
         $peminjaman->update([
