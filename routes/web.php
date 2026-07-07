@@ -25,6 +25,10 @@ Route::get('/login', function () {
     return view('auth.login');
 })->name('login')->middleware('guest');
 
+// Rute SSO Google
+Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('auth.google')->middleware('guest');
+Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->middleware('guest');
+
 //proses form login ketika tombol ditekan
 Route::post('/login-web', [AuthController::class, 'loginWeb']);
 

@@ -6,7 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-use PhpParser\Node\Expr\FuncCall;
+use Illuminate\Support\Str;
+use Laravel\Socialite\Facades\Socialite;
+use Exception;
 
 class AuthController extends Controller
 {
@@ -127,5 +129,56 @@ class AuthController extends Controller
 
         //kembali login
         return redirect('/login')->with('success', 'Registrasi berhasi!');
+    }
+
+    // --- FITUR LOGIN GOOGLE SSO ---
+
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function handleGoogleCallback(Request $request)
+    {
+        try {
+            $googleUser = Socialite::driver('google')->user();
+            $email = $googleUser->getEmail();
+
+            // 1. Validasi Domain Email
+            $isPcrEmail = Str::endsWith($email, ['@pcr.ac.id', '@mahasiswa.pcr.ac.id']);
+            
+            if (!$isPcrEmail) {
+                return redirect('/login')->withErrors([
+                    'email' => 'Akses ditolak. Gunakan akun email PCR (@pcr.ac.id atau @mahasiswa.pcr.ac.id) untuk masuk ke sistem.',
+                ]);
+            }
+
+            // 2. Cari atau Buat User
+            $user = User::where('email', $email)->first();
+
+            if (!$user) {
+                // Tentukan Role (Jika dosen biasanya @pcr.ac.id, mahasiswa @mahasiswa.pcr.ac.id)
+                // Kita defaultkan ke mahasiswa, tapi bisa diatur admin nanti
+                $role = Str::endsWith($email, '@mahasiswa.pcr.ac.id') ? 'mahasiswa' : 'laboran';
+
+                $user = User::create([
+                    'username' => $googleUser->getName(),
+                    'email' => $email,
+                    'password' => bcrypt(Str::random(16)), // Password acak karena pakai SSO
+                    'role' => $role,
+                ]);
+            }
+
+            // 3. Login User ke Web
+            Auth::login($user);
+            $request->session()->regenerate();
+
+            return redirect()->intended('/dashboard');
+
+        } catch (Exception $e) {
+            return redirect('/login')->withErrors([
+                'email' => 'Terjadi kesalahan saat mencoba login dengan Google. Silakan coba lagi.',
+            ]);
+        }
     }
 }
