@@ -70,13 +70,19 @@ class AuthController extends Controller
     public function loginWeb(Request $request)
     {
         //validasi input form
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
+        $request->validate([
+            'login' => ['required', 'string'],
             'password' => ['required'],
         ]);
 
+        // deteksi apakah yang diinput itu format email atau username biasa
+        $login_type = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
         //cek kecocokan di database menggunakan auth session
-        if (Auth::attempt($credentials)) {
+        if (Auth::attempt([
+            $login_type => $request->login, 
+            'password' => $request->password
+        ])) {
             //jika berhasil, buat sesi baru untuk keamanan
             $request->session()->regenerate();
 
@@ -86,8 +92,8 @@ class AuthController extends Controller
         
         //jika gagal, kembalikan ke form login dengan pesan error
         return back()->withErrors([
-            'email' => 'Email atau Password salah.',
-        ])->onlyInput('email');
+            'login' => 'Username/Email atau Password salah.',
+        ])->onlyInput('login');
     }
 
     //fitur logout khusus web

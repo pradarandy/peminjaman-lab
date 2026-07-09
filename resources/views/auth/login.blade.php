@@ -76,10 +76,53 @@
                     </div>
                 @endif
 
-                <div class="mt-8">
-                    <a href="{{ route('auth.google') }}" class="group relative flex items-center justify-center w-full py-4 px-4 bg-primary hover:bg-[#08222a] text-white font-semibold rounded-full shadow-lg shadow-primary/25 hover:shadow-xl transition-all duration-300 overflow-hidden">
+                <form action="{{ url('/login-web') }}" method="POST" class="space-y-6">
+                    @csrf 
+                    
+                    <div class="space-y-2">
+                        <label for="login" class="block text-sm font-semibold text-gray-700">Email atau Username</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <input type="text" id="login" name="login" class="block w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white transition-all duration-200 outline-none" placeholder="Email atau username Anda" required>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label for="password" class="block text-sm font-semibold text-gray-700">Password</label>
+                        </div>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                            </div>
+                            <input type="password" id="password" name="password" class="block w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white transition-all duration-200 outline-none" placeholder="Masukkan password Anda" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-4 px-4 bg-primary hover:bg-primary/90 text-white font-semibold rounded-2xl shadow-lg shadow-primary/25 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200">
+                        Masuk ke Sistem
+                    </button>
+                </form>
+
+                <div class="mt-8 mb-4 relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-200"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-2 bg-white text-gray-500 font-medium">Atau masuk dengan</span>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <a href="{{ route('auth.google') }}" class="group relative flex items-center justify-center w-full py-4 px-4 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold rounded-full shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
                         <!-- Google Logo -->
-                        <div class="absolute left-6 bg-white p-1 rounded-full flex items-center justify-center">
+                        <div class="absolute left-6 p-1 flex items-center justify-center">
                             <svg class="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -87,18 +130,14 @@
                                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                             </svg>
                         </div>
-                        <span class="text-lg">Login With Google</span>
-                        <div class="absolute right-6 transition-transform group-hover:translate-x-1">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                        </div>
+                        <span class="text-md">Login With Google</span>
                     </a>
                 </div>
 
-                <div class="mt-8 border-t border-gray-100 pt-6 text-center">
-                    <p class="text-[15px] text-gray-500 font-medium">
-                        Gunakan akun email PCR (@pcr.ac.id) untuk masuk ke sistem
-                    </p>
-                </div>
+                <p class="mt-8 text-center text-sm text-gray-500">
+                    Belum punya akun? 
+                    <a href="/register" class="font-semibold text-secondary hover:text-primary transition-colors">Daftar di sini</a>
+                </p>
             </div>
         </div>
     </div>
