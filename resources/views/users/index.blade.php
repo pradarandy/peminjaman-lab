@@ -107,7 +107,12 @@
                                         <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-xs uppercase">
                                             {{ substr($user->username, 0, 1) }}
                                         </div>
-                                        <span class="font-bold text-slate-900">{{ $user->username }}</span>
+                                        <div class="flex flex-col">
+                                            <span class="font-bold text-slate-900">{{ $user->username }}</span>
+                                            @if($user->nim)
+                                                <span class="text-xs text-slate-500 font-mono">{{ $user->nim }}</span>
+                                            @endif
+                                        </div>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-slate-500">{{ $user->email }}</td>
@@ -133,6 +138,8 @@
                                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 border border-amber-200 uppercase">Kajur</span>
                                     @elseif($user->role == 'wadir')
                                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200 uppercase">Wadir</span>
+                                    @elseif($user->role == 'admin')
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-700 border border-rose-200 uppercase">Admin BAA</span>
                                     @else
                                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200 uppercase">{{ $user->role }}</span>
                                     @endif
@@ -184,6 +191,10 @@
                                     <input type="text" name="username" class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:bg-white outline-none transition-all" placeholder="Misal: Admin Laboratorium" required>
                                 </div>
                                 <div class="space-y-2">
+                                    <label class="block text-sm font-semibold text-slate-700">Nomor Induk Mahasiswa (NIM)</label>
+                                    <input type="text" name="nim" class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:bg-white outline-none transition-all font-mono" placeholder="Opsional untuk Non-Mahasiswa">
+                                </div>
+                                <div class="space-y-2">
                                     <label class="block text-sm font-semibold text-slate-700">Alamat Email</label>
                                     <input type="email" name="email" class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:bg-white outline-none transition-all" placeholder="Misal: admin@lab.pcr.ac.id" required>
                                 </div>
@@ -199,6 +210,7 @@
                                         <option value="laboran">Staf Laboran (Level 1)</option>
                                         <option value="kajur">Kepala Jurusan (Level 2)</option>
                                         <option value="wadir">Wakil Direktur (Level 3)</option>
+                                        <option value="admin">Admin BAA (Manajemen Akun)</option>
                                     </select>
                                 </div>
                                 <div class="space-y-2 pb-2 border-t border-slate-100 pt-4">

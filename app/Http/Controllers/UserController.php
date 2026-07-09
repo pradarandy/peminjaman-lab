@@ -12,8 +12,8 @@ class UserController extends Controller
     // 1. Menampilkan daftar seluruh akun
     public function index(Request $request)
     {
-        // Fitur ini dibatasi hanya untuk user selain 'mahasiswa'
-        if (Auth::user()->role === 'mahasiswa') {
+        // Fitur ini dibatasi HANYA untuk Admin BAA
+        if (Auth::user()->role !== 'admin') {
             return redirect('/dashboard')->withErrors('Akses Ditolak: Anda tidak memiliki wewenang membuka halaman Manajemen Akun.');
         }
 
@@ -24,23 +24,25 @@ class UserController extends Controller
     // 2. Memproses penambahan akun dari modal tambah akun
     public function store(Request $request)
     {
-        if (Auth::user()->role === 'mahasiswa') {
+        if (Auth::user()->role !== 'admin') {
             return redirect('/dashboard')->withErrors('Akses Ditolak: Anda tidak memiliki wewenang.');
         }
 
         $request->validate([
             'username' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:user,email',
+            'nim'      => 'nullable|string|max:20|unique:user,nim',
+            'email'    => 'required|string|email|max:255|unique:user,email',
             'password' => 'required|string|min:6',
-            'role' => 'required|in:mahasiswa,laboran,kajur,wadir',
+            'role'     => 'required|in:mahasiswa,laboran,kajur,wadir,admin',
             'rfid_uid' => 'nullable|string|unique:user,rfid_uid',
         ]);
 
         User::create([
             'username' => $request->username,
-            'email' => $request->email,
+            'nim'      => $request->nim,
+            'email'    => $request->email,
             'password' => Hash::make($request->password),
-            'role' => $request->role,
+            'role'     => $request->role,
             'rfid_uid' => $request->rfid_uid,
         ]);
 

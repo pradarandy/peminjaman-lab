@@ -17,16 +17,18 @@ class AuthController extends Controller
     {
         $request->validate([
             'username' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:user',
+            'nim'      => 'nullable|string|max:20|unique:user,nim',
+            'email'    => 'required|string|email|max:255|unique:user,email',
             'password' => 'required|string|min:6',
-            'role' => 'required|in:mahasiswa, laboran,kajur,wadir'
+            'role'     => 'required|in:mahasiswa, laboran,kajur,wadir,admin'
         ]);
 
         $user = User::create([
             'username' => $request->username,
-            'email' => $request->email,
+            'nim'      => $request->nim,
+            'email'    => $request->email,
             'password' => Hash::make($request->password), //enkripsi password otomatis
-            'role' => $request->role,
+            'role'     => $request->role,
         ]);
 
         return response()->json(['message' => 'Registrasi berhasil, silahkan login', 'data' => $user], 201);
@@ -121,16 +123,18 @@ class AuthController extends Controller
         //validasi input
         $request->validate([
             'username' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:user,email',
-            'password' =>'required|string|min:6', 
+            'nim'      => 'nullable|string|max:20|unique:user,nim',
+            'email'    => 'required|string|email|max:255|unique:user,email',
+            'password' => 'required|string|min:6', 
         ]);
 
         //simpan ke database
         $user = \App\Models\User::create([
             'username' => $request->username,
-            'email' => $request->email,
+            'nim'      => $request->nim,
+            'email'    => $request->email,
             'password' => bcrypt($request->password),
-            'role' => 'mahasiswa',
+            'role'     => 'mahasiswa',
         ]);
 
         //kembali login
