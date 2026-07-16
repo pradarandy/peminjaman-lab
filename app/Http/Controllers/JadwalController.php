@@ -41,6 +41,27 @@ class JadwalController extends Controller
         return back()->with('success', 'Jadwal Mata Kuliah berhasil ditambahkan!');
     }
 
+    public function update(Request $request, $id)
+    {
+        if (Auth::user()->role === 'mahasiswa') {
+            return redirect('/dashboard')->withErrors('Akses Ditolak.');
+        }
+
+        $request->validate([
+            'id_lab' => 'required|integer',
+            'mata_kuliah' => 'required|string|max:255',
+            'dosen' => 'required|string|max:255',
+            'hari' => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu,Minggu',
+            'jam_mulai' => 'required',
+            'jam_selesai' => 'required',
+        ]);
+
+        $jadwal = JadwalKuliah::findOrFail($id);
+        $jadwal->update($request->all());
+
+        return back()->with('success', 'Jadwal Mata Kuliah berhasil diperbarui!');
+    }
+
     public function destroy($id)
     {
         if (Auth::user()->role === 'mahasiswa') {

@@ -19,14 +19,16 @@ class PeminjamanController extends Controller
     {
         //1. Validasi input dari form
         $request->validate([
-            //'id_user' => 'required|integer',
-            'id_lab' => 'required|integer',
+            'id_lab' => 'required|array',
+            'id_lab.*' => 'integer',
+            'id_asset' => 'nullable|array',
             'tgl_mulai' => 'required|date|after_or_equal:today',
             'tgl_selesai' => 'required|date|after_or_equal:tgl_mulai',
             'jam_mulai' => 'required',
             'jam_selesai' => 'required',
             'keterangan' => 'required|string',
-            'daftar_nama' => 'required|string',
+            'daftar_nama' => 'required|array',
+            'pembimbing' => 'required|string',
             'ketua_kegiatan' => 'required|string',
             'kontak_ketua' => 'required|string',
         ]);
@@ -38,32 +40,34 @@ class PeminjamanController extends Controller
         ];
         $hari_indo = $map_hari[Carbon::parse($request->tgl_mulai)->format('l')];
 
-        $bentrokKuliah = JadwalKuliah::where('id_lab', $request->id_lab)
-            ->where('hari', $hari_indo)
-            ->where(function ($query) use ($request) {
-                $query->where('jam_mulai', '<', $request->jam_selesai)
-                      ->where('jam_selesai', '>', $request->jam_mulai);
-            })->first();
+        foreach ($request->id_lab as $lab_id) {
+            $bentrokKuliah = JadwalKuliah::where('id_lab', $lab_id)
+                ->where('hari', $hari_indo)
+                ->where(function ($query) use ($request) {
+                    $query->where('jam_mulai', '<', $request->jam_selesai)
+                          ->where('jam_selesai', '>', $request->jam_mulai);
+                })->first();
 
-        if ($bentrokKuliah) {
-            return response()->json([
-                'message' => 'Peminjaman gagal: Jadwal berbenturan dengan mata kuliah rutin ('.$bentrokKuliah->mata_kuliah.').'
-            ], 422);
-        }
+            if ($bentrokKuliah) {
+                return response()->json([
+                    'message' => 'Peminjaman gagal: Jadwal berbenturan dengan mata kuliah rutin ('.$bentrokKuliah->mata_kuliah.').'
+                ], 422);
+            }
 
-        // 1.6 Cek Bentrok Peminjaman Insidental Lainnya
-        $bentrokPeminjaman = Peminjaman::where('id_lab', $request->id_lab)
-            ->whereDate('tgl_mulai', $request->tgl_mulai)
-            ->whereIn('status', ['pending', 'approved'])
-            ->where(function ($query) use ($request) {
-                $query->where('jam_mulai', '<', $request->jam_selesai)
-                      ->where('jam_selesai', '>', $request->jam_mulai);
-            })->exists();
+            // 1.6 Cek Bentrok Peminjaman Insidental Lainnya
+            $bentrokPeminjaman = Peminjaman::whereJsonContains('id_lab', (string)$lab_id)
+                ->whereDate('tgl_mulai', $request->tgl_mulai)
+                ->whereIn('status', ['pending', 'approved'])
+                ->where(function ($query) use ($request) {
+                    $query->where('jam_mulai', '<', $request->jam_selesai)
+                          ->where('jam_selesai', '>', $request->jam_mulai);
+                })->exists();
 
-        if ($bentrokPeminjaman) {
-            return response()->json([
-                'message' => 'Peminjaman gagal: Ruangan sudah dibooking/digunakan pada jam tersebut.'
-            ], 422);
+            if ($bentrokPeminjaman) {
+                return response()->json([
+                    'message' => 'Peminjaman gagal: Ruangan sudah dibooking/digunakan pada jam tersebut.'
+                ], 422);
+            }
         }
 
        // 2. Logika Penentuan Level Approval
@@ -88,13 +92,15 @@ class PeminjamanController extends Controller
         //3. Simpan data ke database
         $peminjaman = Peminjaman::create([
             'id_user' => $request->user()->id_user,
-            'id_lab' => $request->id_lab,
+            'id_lab' => array_map('strval', $request->id_lab), // cast ids to strings for json
+            'id_asset' => $request->id_asset ? array_map('strval', $request->id_asset) : null,
             'tgl_mulai' => $request->tgl_mulai,
             'tgl_selesai' => $request->tgl_selesai,
             'jam_mulai' => $request->jam_mulai,
             'jam_selesai' => $request->jam_selesai,
             'keterangan' => $request->keterangan,
-            'daftar_nama' => $request->daftar_nama,
+            'daftar_nama' => array_map('strval', $request->daftar_nama),
+            'pembimbing' => $request->pembimbing,
             'ketua_kegiatan' => $request->ketua_kegiatan,
             'kontak_ketua' => $request->kontak_ketua,
             'level' => $level,
@@ -115,7 +121,8 @@ class PeminjamanController extends Controller
     public function createWeb()
     {
         $labs = Lab::all();
-        return view('peminjaman.create', compact('labs'));
+        $mahasiswas = \App\Models\User::where('role', 'mahasiswa')->get();
+        return view('peminjaman.create', compact('labs', 'mahasiswas'));
     }
 
     //2. Memproses Data dari Form Web HTML
@@ -123,15 +130,18 @@ class PeminjamanController extends Controller
     {
         //.1 Validasi input form web
         $request->validate([
-            'id_lab'=>'required|integer',
-            'tgl_mulai'=>'required|date|after_or_equal:today',
-            'tgl_selesai'=>'required|date|after_or_equal:tgl_mulai',
-            'jam_mulai'=>'required',
-            'jam_selesai'=>'required',
-            'keterangan'=>'required|string',
-            'daftar_nama'=>'required|string',
-            'ketua_kegiatan'=>'required|string',
-            'kontak_ketua'=>'required|string',
+            'id_lab' => 'required|array',
+            'id_lab.*' => 'integer',
+            'id_asset' => 'nullable|array',
+            'tgl_mulai' => 'required|date|after_or_equal:today',
+            'tgl_selesai' => 'required|date|after_or_equal:tgl_mulai',
+            'jam_mulai' => 'required',
+            'jam_selesai' => 'required',
+            'keterangan' => 'required|string',
+            'daftar_nama' => 'required|array',
+            'pembimbing' => 'required|string',
+            'ketua_kegiatan' => 'required|string',
+            'kontak_ketua' => 'required|string',
         ]);
 
         // 1.5 Cek Bentrok Jadwal Mata Kuliah Rutin
@@ -141,28 +151,30 @@ class PeminjamanController extends Controller
         ];
         $hari_indo = $map_hari[Carbon::parse($request->tgl_mulai)->format('l')];
 
-        $bentrokKuliah = JadwalKuliah::where('id_lab', $request->id_lab)
-            ->where('hari', $hari_indo)
-            ->where(function ($query) use ($request) {
-                $query->where('jam_mulai', '<', $request->jam_selesai)
-                      ->where('jam_selesai', '>', $request->jam_mulai);
-            })->first();
+        foreach ($request->id_lab as $lab_id) {
+            $bentrokKuliah = JadwalKuliah::where('id_lab', $lab_id)
+                ->where('hari', $hari_indo)
+                ->where(function ($query) use ($request) {
+                    $query->where('jam_mulai', '<', $request->jam_selesai)
+                          ->where('jam_selesai', '>', $request->jam_mulai);
+                })->first();
 
-        if ($bentrokKuliah) {
-            return back()->withErrors('Peminjaman gagal: Jadwal berbenturan dengan mata kuliah rutin ('.$bentrokKuliah->mata_kuliah.') pada jam tersebut.')->withInput();
-        }
+            if ($bentrokKuliah) {
+                return back()->withErrors('Peminjaman gagal: Jadwal berbenturan dengan mata kuliah rutin ('.$bentrokKuliah->mata_kuliah.') pada jam tersebut.')->withInput();
+            }
 
-        // 1.6 Cek Bentrok Peminjaman Insidental Lainnya
-        $bentrokPeminjaman = Peminjaman::where('id_lab', $request->id_lab)
-            ->whereDate('tgl_mulai', $request->tgl_mulai)
-            ->whereIn('status', ['pending', 'approved'])
-            ->where(function ($query) use ($request) {
-                $query->where('jam_mulai', '<', $request->jam_selesai)
-                      ->where('jam_selesai', '>', $request->jam_mulai);
-            })->exists();
+            // 1.6 Cek Bentrok Peminjaman Insidental Lainnya
+            $bentrokPeminjaman = Peminjaman::whereJsonContains('id_lab', (string)$lab_id)
+                ->whereDate('tgl_mulai', $request->tgl_mulai)
+                ->whereIn('status', ['pending', 'approved'])
+                ->where(function ($query) use ($request) {
+                    $query->where('jam_mulai', '<', $request->jam_selesai)
+                          ->where('jam_selesai', '>', $request->jam_mulai);
+                })->exists();
 
-        if ($bentrokPeminjaman) {
-            return back()->withErrors('Peminjaman gagal: Ruangan sudah dibooking/digunakan pada jam tersebut. Silakan cek menu Status Ruangan.')->withInput();
+            if ($bentrokPeminjaman) {
+                return back()->withErrors('Peminjaman gagal: Ruangan sudah dibooking/digunakan pada jam tersebut. Silakan cek menu Status Ruangan.')->withInput();
+            }
         }
 
         //2. Logika Penentuan Level Approval
@@ -180,20 +192,21 @@ class PeminjamanController extends Controller
         }
 
         //3. Simpan ke database menggunakan auth sesi web
-            $peminjaman_baru = Peminjaman::create([
+        $peminjaman_baru = Peminjaman::create([
             'id_user' => Auth::user()->id_user,
-            'id_lab' => $request->id_lab,
+            'id_lab' => array_map('strval', $request->id_lab),
+            'id_asset' => $request->id_asset ? array_map('strval', $request->id_asset) : null,
             'tgl_mulai' => $request->tgl_mulai,
             'tgl_selesai' => $request->tgl_selesai,
             'jam_mulai' => $request->jam_mulai,
             'jam_selesai' => $request->jam_selesai,
             'keterangan' => $request->keterangan,
-            'daftar_nama' => $request->daftar_nama,
+            'daftar_nama' => array_map('strval', $request->daftar_nama),
+            'pembimbing' => $request->pembimbing,
             'ketua_kegiatan' => $request->ketua_kegiatan,
             'kontak_ketua' => $request->kontak_ketua,
             'level' => $level,
             'status' => 'pending', //status awal selalu pending
-
         ]);
 
          //Logika Pengiriman Email
@@ -230,12 +243,11 @@ class PeminjamanController extends Controller
     public function showWeb($id)
     {
         // Memanfaatkan Relasi Eloquent (Eager Loading) agar lebih efisien dan bersih
-        $peminjaman = Peminjaman::with(['user', 'lab'])->findOrFail($id);
+        $peminjaman = Peminjaman::with(['user'])->findOrFail($id);
         
-        $lab = $peminjaman->lab;
         $mahasiswa = $peminjaman->user;
 
-        return view('peminjaman.show', compact('peminjaman', 'lab', 'mahasiswa'));
+        return view('peminjaman.show', compact('peminjaman', 'mahasiswa'));
     }
 
     // 4. Fitur Cek Status Ruangan
@@ -259,11 +271,11 @@ class PeminjamanController extends Controller
         $hari_indo = $map_hari[Carbon::parse($tanggal)->format('l')];
 
         // 1. Cari jadwal Peminjaman (Insidental)
-        $queryPeminjaman = Peminjaman::with('lab')
+        $queryPeminjaman = Peminjaman::query()
                     ->whereIn('status', ['pending', 'approved'])
                     ->whereDate('tgl_mulai', $tanggal);
         if ($id_lab) {
-            $queryPeminjaman->where('id_lab', $id_lab);
+            $queryPeminjaman->whereJsonContains('id_lab', strval($id_lab));
         }
         $dataPeminjaman = $queryPeminjaman->get()->map(function ($item) {
             $item->tipe_jadwal = 'peminjaman';
@@ -292,11 +304,11 @@ class PeminjamanController extends Controller
         $peminjaman = Peminjaman::findOrFail($id);
         
         if ($peminjaman->status != 'pending') {
-            return "<div style='font-family: sans-serif; padding: 20px; text-align: center;'><h2>Maaf, link kadaluarsa!</h2><p>Status peminjaman ini sudah tidak bisa diubah (Status saat ini: <b>{$peminjaman->status}</b>).</p></div>";
+            return view('peminjaman.email_action', ['status' => 'expired', 'peminjaman' => $peminjaman]);
         }
 
         $peminjaman->update(['status' => 'approved']);
-        return "<div style='font-family: sans-serif; padding: 20px; text-align: center; color: #16a34a;'><h2>Berhasil!</h2><p>Terima kasih, status peminjaman berhasil diperbarui menjadi <b>DISETUJUI</b>.</p></div>";
+        return view('peminjaman.email_action', ['status' => 'approved', 'peminjaman' => $peminjaman]);
     }
 
     // 6. Fitur One-Click Approval Email (Reject)
@@ -305,10 +317,10 @@ class PeminjamanController extends Controller
         $peminjaman = Peminjaman::findOrFail($id);
         
         if ($peminjaman->status != 'pending') {
-            return "<div style='font-family: sans-serif; padding: 20px; text-align: center;'><h2>Maaf, link kadaluarsa!</h2><p>Status peminjaman ini sudah tidak bisa diubah (Status saat ini: <b>{$peminjaman->status}</b>).</p></div>";
+            return view('peminjaman.email_action', ['status' => 'expired', 'peminjaman' => $peminjaman]);
         }
 
         $peminjaman->update(['status' => 'rejected']);
-        return "<div style='font-family: sans-serif; padding: 20px; text-align: center; color: #dc2626;'><h2>Berhasil!</h2><p>Terima kasih, status peminjaman berhasil diperbarui menjadi <b>DITOLAK</b>.</p></div>";
+        return view('peminjaman.email_action', ['status' => 'rejected', 'peminjaman' => $peminjaman]);
     }
 }

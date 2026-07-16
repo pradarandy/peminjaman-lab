@@ -97,7 +97,11 @@
                         </tr>
                         <tr class="hover:bg-slate-50/50 transition-colors">
                             <th class="px-6 py-4 text-left text-sm font-semibold text-slate-500 bg-slate-50/50">Ruang Lab</th>
-                            <td class="px-6 py-4 text-sm text-slate-900 font-semibold">{{ $lab ? $lab->nama : 'Lab ' . $peminjaman->id_lab }}</td>
+                            <td class="px-6 py-4 text-sm text-slate-900 font-semibold">{{ $peminjaman->labs->pluck('nama')->implode(', ') ?: '-' }}</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50/50 transition-colors">
+                            <th class="px-6 py-4 text-left text-sm font-semibold text-slate-500 bg-slate-50/50">Kebutuhan Alat</th>
+                            <td class="px-6 py-4 text-sm text-slate-900 font-semibold">{{ $peminjaman->assets->pluck('nama_asset')->implode(', ') ?: '-' }}</td>
                         </tr>
                         <tr class="hover:bg-slate-50/50 transition-colors">
                             <th class="px-6 py-4 text-left text-sm font-semibold text-slate-500 bg-slate-50/50">Tanggal Mulai</th>
@@ -121,7 +125,11 @@
                         </tr>
                         <tr class="hover:bg-slate-50/50 transition-colors">
                             <th class="px-6 py-4 text-left text-sm font-semibold text-slate-500 bg-slate-50/50 align-top">Daftar Nama Peserta</th>
-                            <td class="px-6 py-4 text-sm text-slate-900 whitespace-pre-wrap">{{ $peminjaman->daftar_nama ?? '-' }}</td>
+                            <td class="px-6 py-4 text-sm text-slate-900 whitespace-pre-wrap">{{ $peminjaman->peserta->pluck('username')->implode(', ') ?: '-' }}</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50/50 transition-colors">
+                            <th class="px-6 py-4 text-left text-sm font-semibold text-slate-500 bg-slate-50/50">Pembimbing</th>
+                            <td class="px-6 py-4 text-sm text-slate-900 font-medium">{{ $peminjaman->pembimbing ?? '-' }}</td>
                         </tr>
                         <tr class="hover:bg-slate-50/50 transition-colors">
                             <th class="px-6 py-4 text-left text-sm font-semibold text-slate-500 bg-slate-50/50">Ketua Kegiatan</th>
@@ -137,7 +145,16 @@
         </div>
 
         <!-- Approval Actions -->
-        @if(auth()->check() && auth()->user()->role !== 'mahasiswa' && $peminjaman->status == 'pending')
+        @php
+            $canApprove = false;
+            if (auth()->check()) {
+                $userRole = auth()->user()->role;
+                if ($peminjaman->level == '1' && $userRole == 'laboran') $canApprove = true;
+                elseif ($peminjaman->level == '2' && $userRole == 'kajur') $canApprove = true;
+                elseif ($peminjaman->level == '3' && $userRole == 'wadir') $canApprove = true;
+            }
+        @endphp
+        @if($canApprove && $peminjaman->status == 'pending')
         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 text-center mb-10">
             <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-100">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>

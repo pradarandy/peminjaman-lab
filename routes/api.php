@@ -16,7 +16,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/rfid/check/{uid}/{id_lab}', [RfidController::class, 'checkAccess']);
 
 // Endpoint untuk mendapatkan data Asset (Dropdown)
-Route::get('/assets', [\App\Http\Controllers\AssetController::class, 'index']);
+Route::get('/assets', [\App\Http\Controllers\AssetController::class, 'apiIndex']);
 
 // Endpoint untuk Pintu Lab Pintar (Raspberry Pi 5)
 Route::post('/v1/scan-rfid', [\App\Http\Controllers\PintuLabController::class, 'scanRfid']);

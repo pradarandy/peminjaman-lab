@@ -46,7 +46,7 @@ class RfidController extends Controller
 
         // Cek apakah mahasiswa ini memiliki peminjaman 'approved' di lab dan waktu saat ini
         $peminjaman = Peminjaman::where('id_user', $user->id_user)
-            ->where('id_lab', $id_lab)
+            ->whereJsonContains('id_lab', (string)$id_lab)
             ->where('status', 'approved')
             ->where('tgl_mulai', '<=', $tanggal_sekarang)
             ->where('tgl_selesai', '>=', $tanggal_sekarang)

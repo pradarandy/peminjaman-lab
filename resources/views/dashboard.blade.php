@@ -101,17 +101,21 @@
             </div>
             
             <div class="flex gap-3">
-                @if(auth()->check() && auth()->user()->role !== 'mahasiswa')
+                @if(auth()->check() && in_array(auth()->user()->role, ['laboran', 'kajur', 'wadir']))
+                    <a href="/labs" class="inline-flex items-center justify-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-xl text-slate-700 bg-white hover:bg-slate-50 shadow-sm transition-all gap-2">
+                        <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                        Lab
+                    </a>
+                    <a href="/assets" class="inline-flex items-center justify-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-xl text-slate-700 bg-white hover:bg-slate-50 shadow-sm transition-all gap-2">
+                        <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                        Asset
+                    </a>
                     <a href="/jadwal" class="inline-flex items-center justify-center px-4 py-2 border border-secondary text-sm font-medium rounded-xl text-secondary bg-white hover:bg-slate-50 shadow-sm transition-all gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                         Jadwal Kuliah
                     </a>
-                    <a href="/users" class="inline-flex items-center justify-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-xl text-slate-700 bg-white hover:bg-slate-50 shadow-sm transition-all gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                        Manajemen Akun
-                    </a>
                 @endif
-                @if(!auth()->check() || auth()->user()->role === 'mahasiswa')
+                @if(!auth()->check() || auth()->user()->role !== 'admin')
                     <a href="/peminjaman/create" class="inline-flex items-center justify-center px-5 py-2 border border-transparent text-sm font-medium rounded-xl text-primary bg-accent hover:bg-accent/90 shadow-lg shadow-accent/20 transition-all gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                         Ajukan Peminjaman
@@ -156,35 +160,106 @@
             </div>
         </div>
 
-        @if(auth()->check() && auth()->user()->role === 'mahasiswa')
-        <!-- RFID Self-Registration -->
-        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4" x-data="{ rfidModal: false }">
+
+
+        @if(auth()->check() && auth()->user()->role === 'admin')
+        <!-- Manajemen Akun Section (Untuk Admin BAA) -->
+        <div class="mb-4 flex flex-col md:flex-row md:items-center justify-between gap-4 mt-12" x-data="{ isModalOpen: false, rfidModal: false }">
             <div>
-                <h3 class="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                    <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"></path></svg>
-                    Kartu Pintar (RFID)
+                <h3 class="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
+                    <div class="p-2 bg-purple-50 text-purple-600 rounded-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    </div>
+                    Manajemen Akun
                 </h3>
-                <p class="text-sm text-slate-500 mt-1">Daftarkan Kartu Mahasiswa (KTM) Anda untuk membuka pintu Smart Lab secara otomatis.</p>
-                <div class="mt-3">
-                    @if(auth()->user()->rfid_uid)
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                            <svg class="mr-1.5 h-2 w-2 text-emerald-400" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
-                            Status: Terdaftar ({{ substr(auth()->user()->rfid_uid, 0, 4) }}...)
-                        </span>
-                    @else
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 border border-slate-200">
-                            <svg class="mr-1.5 h-2 w-2 text-slate-400" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
-                            Status: Belum Terdaftar
-                        </span>
-                    @endif
+                <p class="text-sm text-slate-500 mt-2">Daftar pengguna (User Management) yang memiliki akses ke sistem lab.</p>
+            </div>
+            
+            <div class="flex gap-2">
+                <button @click="rfidModal = true" class="inline-flex items-center justify-center px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold rounded-xl shadow-sm transition-all gap-2 whitespace-nowrap">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"></path></svg>
+                    Daftar RFID Mahasiswa
+                </button>
+                <button @click="isModalOpen = true" class="inline-flex items-center justify-center px-4 py-2 bg-primary hover:bg-primary/90 text-white font-semibold rounded-xl shadow-sm transition-all gap-2 whitespace-nowrap">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                    Tambah Akun
+                </button>
+            </div>
+
+            <!-- Modal Tambah Akun (Alpine.js) -->
+            <div x-show="isModalOpen" style="display: none;" class="relative z-50" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                <div x-show="isModalOpen" x-transition.opacity class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity"></div>
+                <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+                    <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                        <div x-show="isModalOpen" 
+                             x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                             x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                             @click.away="isModalOpen = false"
+                             class="relative transform overflow-hidden rounded-3xl bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                            
+                            <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4 border-b border-slate-100">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-xl font-bold leading-6 text-slate-900" id="modal-title">Pendaftaran Akun Baru</h3>
+                                    <button @click="isModalOpen = false" type="button" class="text-slate-400 hover:text-slate-500">
+                                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </button>
+                                </div>
+                                <p class="text-slate-500 text-sm mt-2">Lengkapi data profil akun pengguna, tentukan role secara bijak.</p>
+                            </div>
+
+                            <form action="{{ route('users.store') }}" method="POST">
+                                @csrf
+                                <div class="px-6 py-4 space-y-4">
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-semibold text-slate-700">Username Lengkap</label>
+                                        <input type="text" name="username" class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:bg-white outline-none transition-all" placeholder="Misal: Admin Laboratorium" required>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-semibold text-slate-700">Nomor Induk Mahasiswa (NIM)</label>
+                                        <input type="text" name="nim" class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:bg-white outline-none transition-all font-mono" placeholder="Opsional untuk Non-Mahasiswa">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-semibold text-slate-700">Alamat Email</label>
+                                        <input type="email" name="email" class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:bg-white outline-none transition-all" placeholder="Misal: admin@lab.pcr.ac.id" required>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="block text-sm font-semibold text-slate-700">Password Akses</label>
+                                        <input type="password" name="password" minlength="6" class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:bg-white outline-none transition-all" placeholder="Minimal 6 karakter" required>
+                                    </div>
+                                    <div class="space-y-2 pb-2">
+                                        <label class="block text-sm font-semibold text-slate-700">Pilih Jabatan (Akses Role)</label>
+                                        <select name="role" class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:bg-white outline-none transition-all" required>
+                                            <option value="" selected disabled>-- Menentukan Hak Akses --</option>
+                                            <option value="mahasiswa">Mahasiswa Peminjam</option>
+                                            <option value="laboran">Staf Laboran (Level 1)</option>
+                                            <option value="kajur">Kepala Jurusan (Level 2)</option>
+                                            <option value="wadir">Wakil Direktur (Level 3)</option>
+                                            <option value="admin">Admin BAA (Manajemen Akun)</option>
+                                        </select>
+                                    </div>
+                                    <div class="space-y-2 pb-2 border-t border-slate-100 pt-4">
+                                        <label class="block text-sm font-semibold text-slate-700 flex items-center gap-2">
+                                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"></path></svg>
+                                            UID RFID (Opsional)
+                                        </label>
+                                        <input type="text" name="rfid_uid" class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:bg-white outline-none transition-all font-mono" placeholder="Tap kartu di alat scanner...">
+                                        <p class="text-xs text-slate-500">Arahkan kursor ke sini dan tap kartu ke alat RFID Reader USB.</p>
+                                    </div>
+                                </div>
+                                <div class="bg-slate-50 px-6 py-4 flex items-center justify-end gap-3 rounded-b-3xl">
+                                    <button type="button" @click="isModalOpen = false" class="px-5 py-2.5 text-sm font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 rounded-xl transition-colors">Batal</button>
+                                    <button type="submit" class="px-5 py-2.5 text-sm font-semibold text-white bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 rounded-xl transition-all flex items-center gap-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                        Buat Akun
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <button @click="rfidModal = true" class="inline-flex items-center justify-center px-4 py-2 border border-slate-300 shadow-sm text-sm font-medium rounded-xl text-slate-700 bg-white hover:bg-slate-50 transition-all gap-2 whitespace-nowrap">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                Perbarui RFID
-            </button>
 
-            <!-- Modal RFID -->
+            <!-- Modal RFID (Alpine.js) -->
             <div x-show="rfidModal" style="display: none;" class="relative z-50" aria-labelledby="modal-title" role="dialog" aria-modal="true">
                 <div x-show="rfidModal" x-transition.opacity class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity"></div>
                 <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
@@ -197,20 +272,29 @@
                             
                             <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4 border-b border-slate-100">
                                 <div class="flex items-center justify-between">
-                                    <h3 class="text-xl font-bold leading-6 text-slate-900" id="modal-title">Pendaftaran RFID KTM</h3>
+                                    <h3 class="text-xl font-bold leading-6 text-slate-900" id="modal-title">Pendaftaran RFID Mahasiswa</h3>
                                     <button @click="rfidModal = false" type="button" class="text-slate-400 hover:text-slate-500">
                                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                     </button>
                                 </div>
-                                <p class="text-slate-500 text-sm mt-2">Arahkan kursor ke dalam kotak di bawah ini, lalu tempelkan KTM Anda ke alat scanner USB yang ada.</p>
+                                <p class="text-slate-500 text-sm mt-2">Pilih mahasiswa dan arahkan kursor ke kolom UID, lalu tempelkan KTM ke alat scanner USB.</p>
                             </div>
 
-                            <form action="{{ route('profil.rfid.update') }}" method="POST">
+                            <form action="{{ route('admin.rfid.update') }}" method="POST">
                                 @csrf
                                 <div class="px-6 py-6 space-y-4">
                                     <div class="space-y-2 pb-2">
-                                        <label class="block text-sm font-semibold text-slate-700">UID RFID Kartu Anda</label>
-                                        <input type="text" name="rfid_uid" value="{{ auth()->user()->rfid_uid }}" class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:bg-white outline-none transition-all font-mono text-center tracking-widest text-lg" placeholder="Tap kartu..." autofocus required>
+                                        <label class="block text-sm font-semibold text-slate-700">Pilih Mahasiswa</label>
+                                        <select name="id_user" class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:bg-white outline-none transition-all" required>
+                                            <option value="" selected disabled>-- Pilih Mahasiswa --</option>
+                                            @foreach($allUsers->where('role', 'mahasiswa') as $mhs)
+                                                <option value="{{ $mhs->id_user }}">{{ $mhs->username }} {{ $mhs->nim ? '('.$mhs->nim.')' : '' }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="space-y-2 pb-2">
+                                        <label class="block text-sm font-semibold text-slate-700">UID RFID Kartu</label>
+                                        <input type="text" name="rfid_uid" class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:bg-white outline-none transition-all font-mono text-center tracking-widest text-lg" placeholder="Tap kartu..." required>
                                     </div>
                                 </div>
                                 <div class="bg-slate-50 px-6 py-4 flex items-center justify-end gap-3 rounded-b-3xl">
@@ -224,6 +308,82 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden mb-12">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200">
+                    <thead class="bg-slate-50/50">
+                        <tr>
+                            <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider w-16">No</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Username</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Email</th>
+                            <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Status RFID</th>
+                            <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider w-48">Akses Role</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 bg-white">
+                        @forelse($allUsers as $index => $u)
+                            <tr class="hover:bg-slate-50/80 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 text-center">{{ $index + 1 }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-xs uppercase">
+                                            {{ substr($u->username, 0, 1) }}
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span class="font-bold text-slate-900">{{ $u->username }}</span>
+                                            @if($u->nim)
+                                                <span class="text-xs text-slate-500 font-mono">{{ $u->nim }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-slate-500">{{ $u->email }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                    @if($u->rfid_uid)
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                            <svg class="mr-1.5 h-2 w-2 text-emerald-400" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
+                                            Terdaftar
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
+                                            <svg class="mr-1.5 h-2 w-2 text-slate-400" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
+                                            Belum Terdaftar
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                    @if($u->role == 'mahasiswa')
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200 uppercase">Mahasiswa</span>
+                                    @elseif($u->role == 'laboran')
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 border border-indigo-200 uppercase">Laboran</span>
+                                    @elseif($u->role == 'kajur')
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 border border-amber-200 uppercase">Kajur</span>
+                                    @elseif($u->role == 'wadir')
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200 uppercase">Wadir</span>
+                                    @elseif($u->role == 'admin')
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-700 border border-rose-200 uppercase">Admin BAA</span>
+                                    @else
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200 uppercase">{{ $u->role }}</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="px-6 py-12 text-center text-slate-500">
+                                    <div class="flex flex-col items-center justify-center">
+                                        <div class="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-4 border border-slate-100">
+                                            <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                                        </div>
+                                        <p class="font-medium">Belum ada akun terdaftar dalam sistem.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
         @endif
@@ -248,7 +408,7 @@
 
         <!-- History Table Section -->
         <div class="mb-4">
-            <h3 class="text-xl font-bold text-slate-900 tracking-tight">Riwayat Peminjaman</h3>
+            <h3 class="text-xl font-bold text-slate-900 tracking-tight">Riwayat Peminjaman </h3>
             <p class="text-sm text-slate-500">Daftar pengajuan peminjaman ruang laboratorium terbaru.</p>
         </div>
 
@@ -274,9 +434,9 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center gap-3">
                                         <div class="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center font-bold text-xs border border-teal-100">
-                                            L{{ $item->id_lab }}
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                                         </div>
-                                        <span class="text-sm font-semibold text-slate-800">Lab {{ $item->id_lab }}</span>
+                                        <span class="text-sm font-semibold text-slate-800">{{ Str::limit($item->labs->pluck('nama')->implode(', '), 30) }}</span>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
@@ -312,7 +472,16 @@
                                         </a>
                                         
                                         <!-- Approver Actions -->
-                                        @if(auth()->check() && auth()->user()->role !== 'mahasiswa' && $item->status == 'pending')
+                                        @php
+                                            $canApprove = false;
+                                            if (auth()->check()) {
+                                                $userRole = auth()->user()->role;
+                                                if ($item->level == '1' && $userRole == 'laboran') $canApprove = true;
+                                                elseif ($item->level == '2' && $userRole == 'kajur') $canApprove = true;
+                                                elseif ($item->level == '3' && $userRole == 'wadir') $canApprove = true;
+                                            }
+                                        @endphp
+                                        @if($canApprove && $item->status == 'pending')
                                             <div class="h-6 w-px bg-slate-200 mx-1"></div>
                                             <form action="/peminjaman/{{ $item->id }}/approval-web" method="POST" class="m-0 inline-block">
                                                 @csrf

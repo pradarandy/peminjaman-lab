@@ -48,16 +48,31 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/peminjaman/{id}/approval-web', [ApprovalController::class, 'storeWeb']);
 
-    // Manajemen Akun (User Management)
-    Route::get('/users', [\App\Http\Controllers\UserController::class, 'index'])->name('users.index');
+    // Manajemen Akun (User Management - POST saja karena index ada di dashboard)
     Route::post('/users', [\App\Http\Controllers\UserController::class, 'store'])->name('users.store');
     
     // Rute untuk update RFID mandiri (Semua User login)
     Route::post('/profil/rfid', [\App\Http\Controllers\UserController::class, 'updateRfid'])->name('profil.rfid.update');
+    
+    // Rute untuk update RFID oleh Admin BAA
+    Route::post('/admin/rfid/update', [\App\Http\Controllers\UserController::class, 'updateRfidAdmin'])->name('admin.rfid.update');
 
     // Manajemen Jadwal Kuliah
     Route::get('/jadwal', [\App\Http\Controllers\JadwalController::class, 'index'])->name('jadwal.index');
     Route::post('/jadwal', [\App\Http\Controllers\JadwalController::class, 'store'])->name('jadwal.store');
+    Route::put('/jadwal/{id}', [\App\Http\Controllers\JadwalController::class, 'update'])->name('jadwal.update');
     Route::delete('/jadwal/{id}', [\App\Http\Controllers\JadwalController::class, 'destroy'])->name('jadwal.destroy');
+
+    // Manajemen Ruang Lab
+    Route::get('/labs', [\App\Http\Controllers\LabController::class, 'index'])->name('labs.index');
+    Route::post('/labs', [\App\Http\Controllers\LabController::class, 'store'])->name('labs.store');
+    Route::put('/labs/{id}', [\App\Http\Controllers\LabController::class, 'update'])->name('labs.update');
+    Route::delete('/labs/{id}', [\App\Http\Controllers\LabController::class, 'destroy'])->name('labs.destroy');
+
+    // Manajemen Asset
+    Route::get('/assets', [\App\Http\Controllers\AssetController::class, 'index'])->name('assets.index');
+    Route::post('/assets', [\App\Http\Controllers\AssetController::class, 'store'])->name('assets.store');
+    Route::put('/assets/{id}', [\App\Http\Controllers\AssetController::class, 'update'])->name('assets.update');
+    Route::delete('/assets/{id}', [\App\Http\Controllers\AssetController::class, 'destroy'])->name('assets.destroy');
 
 });

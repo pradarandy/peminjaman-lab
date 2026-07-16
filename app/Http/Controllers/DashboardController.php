@@ -21,21 +21,33 @@ class DashboardController extends Controller
             $query->where('id_user', $user->id_user);
            }
            elseif ($user->role === 'laboran') {
-            //Laboran hanya mengurus level 1 
-            $query->where('level', '1');
+            //Laboran hanya mengurus level 1 atau melihat peminjamannya sendiri
+            $query->where(function($q) use ($user) {
+                $q->where('level', '1')->orWhere('id_user', $user->id_user);
+            });
            }
            elseif ($user->role === 'kajur') {
-            //kajur hanya mengurus level2
-            $query->where('level', '2');
+            //kajur hanya mengurus level 2 atau melihat peminjamannya sendiri
+            $query->where(function($q) use ($user) {
+                $q->where('level', '2')->orWhere('id_user', $user->id_user);
+            });
            }
            elseif ($user->role === 'wadir') {
-            //wadir mengurus level 3
-            $query->where('level', '3');
+            //wadir mengurus level 3 atau melihat peminjamannya sendiri
+            $query->where(function($q) use ($user) {
+                $q->where('level', '3')->orWhere('id_user', $user->id_user);
+            });
            }
        }
 
         // Query terpisah untuk Pagination (Tabel riwayat) - tetap sesuai role
         $riwayat = $query->paginate(10);
+
+        // Jika user adalah admin BAA, kita butuh semua data user untuk manajemen akun di dashboard
+        $allUsers = [];
+        if ($user && $user->role === 'admin') {
+            $allUsers = \App\Models\User::all();
+        }
 
         // Data statistik global (tidak terpengaruh role), filter bulan ini
         $currentMonth = date('m');
@@ -58,21 +70,22 @@ class DashboardController extends Controller
         ];
 
         // 4. Bar Chart: Frekuensi Peminjaman Lab (Global, Bulan Ini)
-        $labModels = \App\Models\Lab::all()->keyBy('id_lab');
         $labCounts = [];
         foreach ($globalRiwayat as $item) {
-            $labName = isset($labModels[$item->id_lab]) ? $labModels[$item->id_lab]->nama : 'Lab ' . $item->id_lab;
-            if (!isset($labCounts[$labName])) {
-                $labCounts[$labName] = 0;
+            foreach ($item->labs as $lab) {
+                $labName = $lab->nama;
+                if (!isset($labCounts[$labName])) {
+                    $labCounts[$labName] = 0;
+                }
+                $labCounts[$labName]++;
             }
-            $labCounts[$labName]++;
         }
         
         // Urutkan berdasarkan lab terbanyak
         arsort($labCounts);
 
         return view('dashboard', compact(
-            'riwayat', 'user', 'totalBulanIni', 'menungguPersetujuan', 'statusCounts', 'labCounts'
+            'riwayat', 'user', 'totalBulanIni', 'menungguPersetujuan', 'statusCounts', 'labCounts', 'allUsers'
         ));
 
     }

@@ -10,6 +10,12 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/id.js"></script>
+    
+    <!-- jQuery & Select2 -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
     <script>
         tailwind.config = {
             theme: {
@@ -91,10 +97,35 @@
                         </div>
                     </div>
 
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="block text-sm font-semibold text-slate-700">Nama Peminjam</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                </div>
+                                <input type="text" class="block w-full pl-11 pr-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-700 font-medium outline-none" value="{{ auth()->user()->username }}" readonly>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="block text-sm font-semibold text-slate-700">NIM Peminjam</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"></path></svg>
+                                </div>
+                                <input type="text" class="block w-full pl-11 pr-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-700 font-medium outline-none" value="{{ auth()->user()->nim ?? '-' }}" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold text-slate-700">Kegiatan <span class="text-red-500">*</span></label>
+                        <textarea name="keterangan" rows="2" class="block w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-y" placeholder="Contoh: Tes CBT UMPCR 1" required></textarea>
+                    </div>
+
                     <div class="space-y-2">
                         <label class="block text-sm font-semibold text-slate-700">Pilih Ruang Lab <span class="text-red-500">*</span></label>
-                        <select name="id_lab" class="block w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" required>
-                            <option value="" disabled selected>-- Pilih Ruang Lab --</option>
+                        <select name="id_lab[]" class="select2 block w-full" multiple="multiple" data-placeholder="-- Pilih Ruang Lab --" required>
                             @foreach($labs as $lab)
                                 <option value="{{ $lab->id_lab }}">{{ $lab->nama }}</option>
                             @endforeach
@@ -102,9 +133,9 @@
                     </div>
 
                     <div class="space-y-2">
-                        <label for="assetDropdown" class="block text-sm font-semibold text-slate-700">Pilih Asset (Opsional)</label>
-                        <select id="assetDropdown" name="id_asset" class="block w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all">
-                            <option value="" selected disabled>Sedang memuat data asset...</option>
+                        <label for="assetDropdown" class="block text-sm font-semibold text-slate-700">Pilih Kebutuhan Alat di Lab (Opsional)</label>
+                        <select id="assetDropdown" name="id_asset[]" class="select2 block w-full" multiple="multiple" data-placeholder="-- Pilih Asset --">
+                            <!-- Options will be loaded via JS -->
                         </select>
                     </div>
                     
@@ -163,16 +194,15 @@
                     </div>
 
                     <div class="space-y-2">
-                        <label class="block text-sm font-semibold text-slate-700">Keperluan / Keterangan <span class="text-red-500">*</span></label>
-                        <textarea name="keterangan" rows="2" class="block w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-y" placeholder="Contoh: Bootcamp PA Bimbingan MMZ" required></textarea>
-                    </div>
-
-                    <div class="space-y-2">
                         <label class="block text-sm font-semibold text-slate-700">Daftar Nama Peserta <span class="text-red-500">*</span></label>
-                        <textarea name="daftar_nama" rows="4" class="block w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-y" placeholder="1. Nama Pertama&#10;2. Nama Kedua" required></textarea>
+                        <select name="daftar_nama[]" class="select2 block w-full" multiple="multiple" data-placeholder="-- Pilih Mahasiswa --" required>
+                            @foreach($mahasiswas as $mhs)
+                                <option value="{{ $mhs->id_user }}">{{ $mhs->username }} {{ $mhs->nim ? '('.$mhs->nim.')' : '' }}</option>
+                            @endforeach
+                        </select>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-2">
                             <label class="block text-sm font-semibold text-slate-700">Ketua Kegiatan <span class="text-red-500">*</span></label>
                             <input type="text" name="ketua_kegiatan" class="block w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" placeholder="Nama Ketua" required>
@@ -181,6 +211,11 @@
                             <label class="block text-sm font-semibold text-slate-700">Kontak Ketua (No. HP) <span class="text-red-500">*</span></label>
                             <input type="text" name="kontak_ketua" class="block w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" placeholder="08xxxxxxxxxx" required>
                         </div>
+                    </div>
+                    
+                    <div class="space-y-2 pb-4">
+                        <label class="block text-sm font-semibold text-slate-700">Pembimbing <span class="text-red-500">*</span></label>
+                        <input type="text" name="pembimbing" class="block w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" placeholder="Nama Pembimbing" required>
                     </div>
 
                     <div class="pt-4 border-t border-slate-200">
@@ -194,8 +229,33 @@
     </main>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const assetDropdown = document.getElementById('assetDropdown');
+        $(document).ready(function() {
+            // Inisialisasi Select2
+            $('.select2').select2({
+                width: '100%',
+                theme: 'classic'
+            });
+
+            // Ubah gaya Select2 agar cocok dengan desain Tailwind yang ada
+            $('.select2-container .select2-selection--multiple').css({
+                'border': '1px solid #cbd5e1',
+                'border-radius': '0.75rem',
+                'min-height': '3rem',
+                'padding': '0.25rem 0.5rem',
+                'border-color': '#cbd5e1'
+            });
+            
+            $('.select2-container--classic .select2-selection--multiple .select2-selection__choice').css({
+                'background-color': '#f1f5f9',
+                'border': '1px solid #e2e8f0',
+                'border-radius': '0.5rem',
+                'padding': '4px 8px',
+                'color': '#0B2B36',
+                'font-weight': '500',
+                'margin-top': '6px'
+            });
+
+            const assetDropdown = $('#assetDropdown');
 
             // Fetch Data Asset dari API
             fetch('/api/assets')
@@ -204,18 +264,20 @@
                     return response.json();
                 })
                 .then(data => {
-                    assetDropdown.innerHTML = '<option value="">-- Tidak Meminjam Asset --</option>';
+                    assetDropdown.empty();
                     data.forEach(asset => {
-                        const option = document.createElement('option');
-                        option.value = asset.id;
-                        option.textContent = `${asset.nama_asset} - ${asset.nama} (${asset.posisi_asset})`;
-                        assetDropdown.appendChild(option);
+                        const option = new Option(`${asset.nama_asset} (${asset.posisi_asset})`, asset.id, false, false);
+                        assetDropdown.append(option);
                     });
+                    // Trigger change to refresh Select2
+                    assetDropdown.trigger('change');
                 })
                 .catch(error => {
                     console.error('Error fetching assets:', error);
-                    assetDropdown.innerHTML = '<option value="">-- Gagal memuat asset --</option>';
                 });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
 
             const tglMulai = document.getElementById('tgl_mulai');
             const jamMulai = document.getElementById('jam_mulai');
@@ -271,10 +333,11 @@
     <style>
         .flatpickr-calendar {
             border: 1px solid #e2e8f0;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+            box-shadow: 0 10px 45px -5px r  ba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
             border-radius: 1rem !important;
             padding: 10px !important;
             font-family: 'Inter', sans-serif;
+            width: max-content !important;
         }
         .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange, .flatpickr-day.selected.inRange, .flatpickr-day.startRange.inRange, .flatpickr-day.endRange.inRange, .flatpickr-day.selected:focus, .flatpickr-day.startRange:focus, .flatpickr-day.endRange:focus, .flatpickr-day.selected:hover, .flatpickr-day.startRange:hover, .flatpickr-day.endRange:hover, .flatpickr-day.selected.prevMonthDay, .flatpickr-day.startRange.prevMonthDay, .flatpickr-day.endRange.prevMonthDay, .flatpickr-day.selected.nextMonthDay, .flatpickr-day.startRange.nextMonthDay, .flatpickr-day.endRange.nextMonthDay {
             background: #0B2B36 !important;

@@ -9,19 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
-    // 1. Menampilkan daftar seluruh akun
-    public function index(Request $request)
-    {
-        // Fitur ini dibatasi HANYA untuk Admin BAA
-        if (Auth::user()->role !== 'admin') {
-            return redirect('/dashboard')->withErrors('Akses Ditolak: Anda tidak memiliki wewenang membuka halaman Manajemen Akun.');
-        }
-
-        $users = User::all();
-        return view('users.index', compact('users'));
-    }
-
-    // 2. Memproses penambahan akun dari modal tambah akun
+    // 1. Memproses penambahan akun dari modal tambah akun
     public function store(Request $request)
     {
         if (Auth::user()->role !== 'admin') {
@@ -61,5 +49,24 @@ class UserController extends Controller
         $user->save();
 
         return back()->with('success', 'Kartu Pintar (RFID) Anda berhasil didaftarkan dan dihubungkan ke sistem.');
+    }
+
+    // 4. Memproses pendaftaran RFID oleh Admin BAA untuk mahasiswa tertentu
+    public function updateRfidAdmin(Request $request)
+    {
+        if (Auth::user()->role !== 'admin') {
+            return redirect('/dashboard')->withErrors('Akses Ditolak: Anda tidak memiliki wewenang.');
+        }
+
+        $request->validate([
+            'id_user'  => 'required|exists:user,id_user',
+            'rfid_uid' => 'required|string|unique:user,rfid_uid,' . $request->id_user . ',id_user'
+        ]);
+
+        $user = User::find($request->id_user);
+        $user->rfid_uid = $request->rfid_uid;
+        $user->save();
+
+        return back()->with('success', 'RFID berhasil didaftarkan untuk pengguna ' . $user->username);
     }
 }

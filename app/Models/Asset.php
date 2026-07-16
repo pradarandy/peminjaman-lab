@@ -10,9 +10,6 @@ class Asset extends Model
     use HasFactory;
 
     protected $fillable = [
-        'inisial',
-        'nama',
-        'email_dosen',
         'nama_asset',
         'posisi_asset',
     ];

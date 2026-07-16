@@ -143,10 +143,17 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center font-bold text-xs border border-teal-100">
-                                            L{{ $item->id_lab }}
-                                        </div>
-                                        <span class="text-sm font-semibold text-slate-800">Lab {{ $item->id_lab }} {{ $item->lab && $item->lab->nama ? '- '.$item->lab->nama : '' }}</span>
+                                        @if(isset($item->tipe_jadwal) && $item->tipe_jadwal == 'peminjaman')
+                                            <div class="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center font-bold text-xs border border-teal-100">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                                            </div>
+                                            <span class="text-sm font-semibold text-slate-800">{{ Str::limit($item->labs->pluck('nama')->implode(', '), 30) }}</span>
+                                        @else
+                                            <div class="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center font-bold text-xs border border-teal-100">
+                                                L{{ $item->id_lab }}
+                                            </div>
+                                            <span class="text-sm font-semibold text-slate-800">Lab {{ $item->id_lab }} {{ $item->lab && $item->lab->nama ? '- '.$item->lab->nama : '' }}</span>
+                                        @endif
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
