@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Drop foreign key first
+        // Drop foreign key first (using RAW SQL to avoid Blueprint compilation issues)
         try {
-            Schema::table('peminjaman', function (Blueprint $table) {
-                $table->dropForeign('peminjaman_ibfk_2');
-            });
-        } catch (\Exception $e) {
-            // Ignore if foreign key doesn't exist
-        }
+            \Illuminate\Support\Facades\DB::statement('ALTER TABLE peminjaman DROP FOREIGN KEY peminjaman_ibfk_2');
+        } catch (\Exception $e) {}
+
+        try {
+            \Illuminate\Support\Facades\DB::statement('ALTER TABLE peminjaman DROP INDEX id_lab');
+        } catch (\Exception $e) {}
 
         // Change column types and add new columns
         Schema::table('peminjaman', function (Blueprint $table) {
