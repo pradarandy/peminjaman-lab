@@ -69,4 +69,23 @@ class UserController extends Controller
 
         return back()->with('success', 'RFID berhasil didaftarkan untuk pengguna ' . $user->username);
     }
+
+    // 5. Menghapus akun pengguna (Khusus Admin BAA)
+    public function destroy($id)
+    {
+        if (Auth::user()->role !== 'admin') {
+            return redirect('/dashboard')->withErrors('Akses Ditolak: Anda tidak memiliki wewenang.');
+        }
+
+        $user = User::findOrFail($id);
+
+        // Jangan izinkan admin menghapus dirinya sendiri
+        if (Auth::id() == $id) {
+            return back()->withErrors('Anda tidak dapat menghapus akun Anda sendiri.');
+        }
+
+        $user->delete();
+
+        return back()->with('success', 'Akun pengguna berhasil dihapus.');
+    }
 }
