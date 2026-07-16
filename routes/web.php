@@ -27,24 +27,6 @@ Route::get('/login', function () {
 
 // Rute SSO Google
 Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('auth.google')->middleware('guest');
-Route::get('/fix-db', function () {
-    try {
-        \Illuminate\Support\Facades\DB::statement('ALTER TABLE peminjaman DROP FOREIGN KEY peminjaman_ibfk_2');
-        echo "FK dropped successfully.<br>";
-    } catch (\Exception $e) {
-        echo "Error dropping FK: " . $e->getMessage() . "<br>";
-    }
-    
-    try {
-        \Illuminate\Support\Facades\DB::statement('ALTER TABLE peminjaman DROP INDEX id_lab');
-        echo "Index dropped successfully.<br>";
-    } catch (\Exception $e) {
-        echo "Error dropping Index: " . $e->getMessage() . "<br>";
-    }
-
-    return "Done.";
-});
-
 Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->middleware('guest');
 
 //proses form login ketika tombol ditekan
