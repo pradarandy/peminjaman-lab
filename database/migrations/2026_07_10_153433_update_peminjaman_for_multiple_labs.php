@@ -12,10 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         // Drop foreign key first
-        Schema::table('peminjaman', function (Blueprint $table) {
-            // $table->dropForeign('peminjaman_ibfk_2');
-            // $table->dropIndex('id_lab');
-        });
+        try {
+            Schema::table('peminjaman', function (Blueprint $table) {
+                $table->dropForeign('peminjaman_ibfk_2');
+            });
+        } catch (\Exception $e) {
+            // Ignore if foreign key doesn't exist
+        }
 
         // Change column types and add new columns
         Schema::table('peminjaman', function (Blueprint $table) {
