@@ -50,7 +50,8 @@ class Peminjaman extends Model
     public function getLabsAttribute()
     {
         if (empty($this->id_lab)) return collect();
-        return Lab::whereIn('id_lab', $this->id_lab)->get();
+        $labs = is_array($this->id_lab) ? $this->id_lab : [$this->id_lab];
+        return Lab::whereIn('id_lab', $labs)->get();
     }
 
     /**
@@ -59,7 +60,8 @@ class Peminjaman extends Model
     public function getAssetsAttribute()
     {
         if (empty($this->id_asset)) return collect();
-        return Asset::whereIn('id', $this->id_asset)->get();
+        $assets = is_array($this->id_asset) ? $this->id_asset : [$this->id_asset];
+        return Asset::whereIn('id', $assets)->get();
     }
 
     /**
@@ -75,6 +77,7 @@ class Peminjaman extends Model
             }
             return collect();
         }
-        return User::whereIn('id_user', $this->daftar_nama)->get();
+        $peserta = is_array($this->daftar_nama) ? $this->daftar_nama : [$this->daftar_nama];
+        return User::whereIn('id_user', $peserta)->get();
     }
 }
