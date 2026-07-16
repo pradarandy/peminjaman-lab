@@ -27,6 +27,24 @@ Route::get('/login', function () {
 
 // Rute SSO Google
 Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('auth.google')->middleware('guest');
+Route::get('/fix-db', function () {
+    try {
+        \Illuminate\Support\Facades\DB::statement('ALTER TABLE peminjaman DROP FOREIGN KEY peminjaman_ibfk_2');
+        echo "FK dropped successfully.<br>";
+    } catch (\Exception $e) {
+        echo "Error dropping FK: " . $e->getMessage() . "<br>";
+    }
+    
+    try {
+        \Illuminate\Support\Facades\DB::statement('ALTER TABLE peminjaman DROP INDEX id_lab');
+        echo "Index dropped successfully.<br>";
+    } catch (\Exception $e) {
+        echo "Error dropping Index: " . $e->getMessage() . "<br>";
+    }
+
+    return "Done.";
+});
+
 Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->middleware('guest');
 
 //proses form login ketika tombol ditekan
@@ -50,6 +68,7 @@ Route::middleware('auth')->group(function () {
 
     // Manajemen Akun (User Management - POST saja karena index ada di dashboard)
     Route::post('/users', [\App\Http\Controllers\UserController::class, 'store'])->name('users.store');
+    Route::delete('/users/{id}', [\App\Http\Controllers\UserController::class, 'destroy'])->name('users.destroy');
     
     // Rute untuk update RFID mandiri (Semua User login)
     Route::post('/profil/rfid', [\App\Http\Controllers\UserController::class, 'updateRfid'])->name('profil.rfid.update');
