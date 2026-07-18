@@ -18,7 +18,7 @@ class AssetController extends Controller
     public function index()
     {
         $role = Auth::user()->role;
-        if (!in_array($role, ['laboran', 'kajur', 'wadir'])) {
+        if (!in_array($role, ['laboran', 'kajur', 'wadir', 'admin'])) {
             return redirect('/dashboard')->withErrors('Akses Ditolak: Anda tidak memiliki wewenang.');
         }
 
@@ -31,7 +31,7 @@ class AssetController extends Controller
     public function store(Request $request)
     {
         $role = Auth::user()->role;
-        if (!in_array($role, ['laboran', 'kajur', 'wadir'])) {
+        if (!in_array($role, ['laboran', 'kajur', 'wadir', 'admin'])) {
             return redirect('/dashboard')->withErrors('Akses Ditolak.');
         }
 
@@ -49,7 +49,7 @@ class AssetController extends Controller
     public function update(Request $request, $id)
     {
         $role = Auth::user()->role;
-        if (!in_array($role, ['laboran', 'kajur', 'wadir'])) {
+        if (!in_array($role, ['laboran', 'kajur', 'wadir', 'admin'])) {
             return redirect('/dashboard')->withErrors('Akses Ditolak.');
         }
 
@@ -68,7 +68,7 @@ class AssetController extends Controller
     public function destroy($id)
     {
         $role = Auth::user()->role;
-        if (!in_array($role, ['laboran', 'kajur', 'wadir'])) {
+        if (!in_array($role, ['laboran', 'kajur', 'wadir', 'admin'])) {
             return redirect('/dashboard')->withErrors('Akses Ditolak.');
         }
 
