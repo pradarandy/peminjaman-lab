@@ -142,7 +142,15 @@ class PeminjamanController extends Controller
             'pembimbing' => 'required|string',
             'ketua_kegiatan' => 'required|string',
             'kontak_ketua' => 'required|string',
+            'nim' => 'required|string',
         ]);
+
+        // Update NIM user yang sedang login jika ada perubahan/baru diisi
+        if ($request->filled('nim')) {
+            $user = Auth::user();
+            $user->nim = $request->nim;
+            $user->save();
+        }
 
         // 1.5 Cek Bentrok Jadwal Mata Kuliah Rutin
         $map_hari = [
