@@ -21,7 +21,7 @@ class PeminjamanController extends Controller
         $request->validate([
             'id_lab' => 'required|array',
             'id_lab.*' => 'integer',
-            'kebutuhan_alat' => 'nullable|string',
+            'kebutuhan_alat' => 'required|string',
             'tgl_mulai' => 'required|date|after_or_equal:today',
             'tgl_selesai' => 'required|date|after_or_equal:tgl_mulai',
             'jam_mulai' => 'required',
@@ -133,7 +133,7 @@ class PeminjamanController extends Controller
         $request->validate([
             'id_lab' => 'required|array',
             'id_lab.*' => 'integer',
-            'kebutuhan_alat' => 'nullable|string',
+            'kebutuhan_alat' => 'required|string',
             'tgl_mulai' => 'required|date|after_or_equal:today',
             'tgl_selesai' => 'required|date|after_or_equal:tgl_mulai',
             'jam_mulai' => 'required',
