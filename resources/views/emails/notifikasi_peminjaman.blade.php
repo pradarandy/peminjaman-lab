@@ -55,10 +55,8 @@
                     </td>
                 </tr>
                 <tr>
-                    <th style="padding: 16px 24px; font-size: 14px; font-weight: 600; color: #64748b; background-color: #f8fafc; border-bottom: 1px solid #f1f5f9;">Kebutuhan Alat</th>
-                    <td style="padding: 16px 24px; font-size: 14px; font-weight: 600; color: #0f172a; border-bottom: 1px solid #f1f5f9;">
-                        {{ $peminjaman->assets->pluck('nama_asset')->implode(', ') ?: '-' }}
-                    </td>
+                    <th style="padding: 16px 24px; font-size: 14px; font-weight: 600; color: #64748b; background-color: #f8fafc; border-bottom: 1px solid #f1f5f9; vertical-align: top;">Kebutuhan Alat</th>
+                    <td style="padding: 16px 24px; font-size: 14px; font-weight: 600; color: #0f172a; border-bottom: 1px solid #f1f5f9; white-space: pre-wrap;">{{ $peminjaman->kebutuhan_alat ?: '-' }}</td>
                 </tr>
                 <tr>
                     <th style="padding: 16px 24px; font-size: 14px; font-weight: 600; color: #64748b; background-color: #f8fafc; border-bottom: 1px solid #f1f5f9;">Tanggal Mulai</th>

@@ -116,8 +116,8 @@
                             <td class="px-6 py-4 text-sm text-slate-900 font-semibold">{{ $peminjaman->labs->pluck('nama')->implode(', ') ?: '-' }}</td>
                         </tr>
                         <tr class="hover:bg-slate-50/50 transition-colors">
-                            <th class="px-6 py-4 text-left text-sm font-semibold text-slate-500 bg-slate-50/50">Kebutuhan Alat</th>
-                            <td class="px-6 py-4 text-sm text-slate-900 font-semibold">{{ $peminjaman->assets->pluck('nama_asset')->implode(', ') ?: '-' }}</td>
+                            <th class="px-6 py-4 text-left text-sm font-semibold text-slate-500 bg-slate-50/50 align-top">Kebutuhan Alat</th>
+                            <td class="px-6 py-4 text-sm text-slate-900 font-semibold whitespace-pre-wrap">{{ $peminjaman->kebutuhan_alat ?: '-' }}</td>
                         </tr>
                         <tr class="hover:bg-slate-50/50 transition-colors">
                             <th class="px-6 py-4 text-left text-sm font-semibold text-slate-500 bg-slate-50/50">Tanggal Mulai</th>

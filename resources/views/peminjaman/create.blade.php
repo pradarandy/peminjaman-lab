@@ -133,10 +133,8 @@
                     </div>
 
                     <div class="space-y-2">
-                        <label for="assetDropdown" class="block text-sm font-semibold text-slate-700">Pilih Kebutuhan Alat di Lab (Opsional)</label>
-                        <select id="assetDropdown" name="id_asset[]" class="select2 block w-full" multiple="multiple" data-placeholder="-- Pilih Asset --">
-                            <!-- Options will be loaded via JS -->
-                        </select>
+                        <label class="block text-sm font-semibold text-slate-700">Kebutuhan Alat di Lab (Opsional)</label>
+                        <textarea name="kebutuhan_alat" rows="2" class="block w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-y" placeholder="Ketik manual kebutuhan alat (contoh: 1 buah Proyektor, 2 buah Kabel Roll)"></textarea>
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -261,26 +259,7 @@
                 'margin-top': '6px'
             });
 
-            const assetDropdown = $('#assetDropdown');
 
-            // Fetch Data Asset dari API
-            fetch('/api/assets')
-                .then(response => {
-                    if (!response.ok) throw new Error('Gagal memuat asset');
-                    return response.json();
-                })
-                .then(data => {
-                    assetDropdown.empty();
-                    data.forEach(asset => {
-                        const option = new Option(`${asset.nama_asset} (${asset.posisi_asset})`, asset.id, false, false);
-                        assetDropdown.append(option);
-                    });
-                    // Trigger change to refresh Select2
-                    assetDropdown.trigger('change');
-                })
-                .catch(error => {
-                    console.error('Error fetching assets:', error);
-                });
         });
 
         document.addEventListener('DOMContentLoaded', function() {

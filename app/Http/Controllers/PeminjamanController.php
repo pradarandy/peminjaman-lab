@@ -21,7 +21,7 @@ class PeminjamanController extends Controller
         $request->validate([
             'id_lab' => 'required|array',
             'id_lab.*' => 'integer',
-            'id_asset' => 'nullable|array',
+            'kebutuhan_alat' => 'nullable|string',
             'tgl_mulai' => 'required|date|after_or_equal:today',
             'tgl_selesai' => 'required|date|after_or_equal:tgl_mulai',
             'jam_mulai' => 'required',
@@ -93,7 +93,8 @@ class PeminjamanController extends Controller
         $peminjaman = Peminjaman::create([
             'id_user' => $request->user()->id_user,
             'id_lab' => array_map('strval', $request->id_lab), // cast ids to strings for json
-            'id_asset' => $request->id_asset ? array_map('strval', $request->id_asset) : null,
+            'id_asset' => null,
+            'kebutuhan_alat' => $request->kebutuhan_alat,
             'tgl_mulai' => $request->tgl_mulai,
             'tgl_selesai' => $request->tgl_selesai,
             'jam_mulai' => $request->jam_mulai,
@@ -132,7 +133,7 @@ class PeminjamanController extends Controller
         $request->validate([
             'id_lab' => 'required|array',
             'id_lab.*' => 'integer',
-            'id_asset' => 'nullable|array',
+            'kebutuhan_alat' => 'nullable|string',
             'tgl_mulai' => 'required|date|after_or_equal:today',
             'tgl_selesai' => 'required|date|after_or_equal:tgl_mulai',
             'jam_mulai' => 'required',
@@ -204,7 +205,8 @@ class PeminjamanController extends Controller
         $peminjaman_baru = Peminjaman::create([
             'id_user' => Auth::user()->id_user,
             'id_lab' => array_map('strval', $request->id_lab),
-            'id_asset' => $request->id_asset ? array_map('strval', $request->id_asset) : null,
+            'id_asset' => null,
+            'kebutuhan_alat' => $request->kebutuhan_alat,
             'tgl_mulai' => $request->tgl_mulai,
             'tgl_selesai' => $request->tgl_selesai,
             'jam_mulai' => $request->jam_mulai,

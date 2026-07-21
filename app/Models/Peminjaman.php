@@ -17,6 +17,7 @@ class Peminjaman extends Model
         'id_user',
         'id_lab',
         'id_asset',
+        'kebutuhan_alat',
         'tgl_mulai',
         'tgl_selesai',
         'jam_mulai',
