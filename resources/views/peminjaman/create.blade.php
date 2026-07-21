@@ -134,7 +134,7 @@
 
                     <div class="space-y-2">
                         <label class="block text-sm font-semibold text-slate-700">Kebutuhan Alat di Lab <span class="text-red-500">*</span></label>
-                        <textarea name="kebutuhan_alat" rows="2" class="block w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-y" placeholder="Ketik manual kebutuhan alat (contoh: 1 buah Proyektor, 2 buah Kabel Roll, dll atau isi '-' jika tidak ada)" required></textarea>
+                        <textarea name="kebutuhan_alat" rows="2" class="block w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-y" placeholder="Contoh: 1 PC, Proyektor, dll atau isi '-' jika tidak ada)" required></textarea>
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
