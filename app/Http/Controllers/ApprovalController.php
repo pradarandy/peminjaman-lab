@@ -60,20 +60,66 @@ class ApprovalController extends Controller
             return back()->withErrors('Data peminjaman tidak ditemukan.');
         }
 
-        // Validasi Otorisasi: Pastikan role User sesuai dengan level dokumen peminjaman
+        if (in_array($peminjaman->status, ['approved', 'rejected'])) {
+            return back()->withErrors('Peminjaman ini sudah selesai diproses sebelumnya.');
+        }
+
+        // Validasi Otorisasi
         $userRole = Auth::user()->role;
         $authorized = false;
 
-        if ($peminjaman->level == '1' && $userRole == 'laboran') {
+        if ($peminjaman->status == 'pending_laboran' && $userRole == 'laboran') {
             $authorized = true;
-        } elseif ($peminjaman->level == '2' && $userRole == 'kajur') {
+        } elseif ($peminjaman->status == 'pending_kajur' && $userRole == 'kajur') {
             $authorized = true;
-        } elseif ($peminjaman->level == '3' && $userRole == 'wadir') {
+        } elseif ($peminjaman->status == 'pending_wadir' && $userRole == 'wadir') {
             $authorized = true;
-        } // Anda bisa tambahkan `elseif ($userRole == 'admin') { $authorized = true; }` di sini jika ada superadmin
+        }
 
         if (!$authorized) {
-            return back()->withErrors('Akses Ditolak: Anda tidak memiliki wewenang untuk menyetujui peminjaman ini.');
+            return back()->withErrors('Akses Ditolak: Anda tidak memiliki wewenang atau ini bukan giliran Anda untuk menyetujui peminjaman ini.');
+        }
+
+        // Jika Ditolak, langsung reject
+        if ($request->status == 'rejected') {
+            $peminjaman->status = 'rejected';
+            $peminjaman->save();
+        } else {
+            // Logika Berjenjang (Approved)
+            $level = $peminjaman->level;
+            $statusSekarang = $peminjaman->status;
+            $role_tujuan_selanjutnya = '';
+
+            if ($statusSekarang == 'pending_laboran') {
+                if ($level == '1') {
+                    $peminjaman->status = 'approved';
+                } else {
+                    $peminjaman->status = 'pending_kajur';
+                    $role_tujuan_selanjutnya = 'kajur';
+                }
+            } elseif ($statusSekarang == 'pending_kajur') {
+                if ($level == '2') {
+                    $peminjaman->status = 'approved';
+                } else {
+                    $peminjaman->status = 'pending_wadir';
+                    $role_tujuan_selanjutnya = 'wadir';
+                }
+            } elseif ($statusSekarang == 'pending_wadir') {
+                $peminjaman->status = 'approved';
+            }
+
+            $peminjaman->save();
+
+            // Kirim email ke approver selanjutnya jika ada
+            if ($peminjaman->status != 'approved' && $role_tujuan_selanjutnya != '') {
+                $approver = \App\Models\User::where('role', $role_tujuan_selanjutnya)->first();
+                if ($approver && $approver->email) {
+                    $mahasiswa = $peminjaman->user;
+                    $approveUrl = \Illuminate\Support\Facades\URL::signedRoute('peminjaman.email_approve', ['id' => $peminjaman->id]);
+                    $rejectUrl = \Illuminate\Support\Facades\URL::signedRoute('peminjaman.email_reject', ['id' => $peminjaman->id]);
+                    \Illuminate\Support\Facades\Mail::to($approver->email)->send(new \App\Mail\NotifikasiPeminjamanMail($peminjaman, $mahasiswa, $approveUrl, $rejectUrl));
+                }
+            }
         }
 
         // Catat ke riwayat persetujuan
@@ -83,11 +129,6 @@ class ApprovalController extends Controller
             'level' => $peminjaman->level,
             'status' => $request->status,
             'tgl_acc' => Carbon::now(),
-        ]);
-
-        //Update status
-        $peminjaman->update([
-            'status' => $request->status
         ]);
 
         $kata_status = $request->status == 'approved' ? 'disetujui' : 'ditolak';

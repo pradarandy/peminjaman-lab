@@ -460,17 +460,33 @@
                                     {{ $item->keterangan }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
-                                    @if($item->status == 'pending')
+                                    @if($item->status == 'pending_pembimbing')
                                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5"></span> Pending
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5"></span> Menunggu Pembimbing
+                                        </span>
+                                    @elseif($item->status == 'pending_laboran')
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5"></span> Menunggu Laboran
+                                        </span>
+                                    @elseif($item->status == 'pending_kajur')
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5"></span> Menunggu Kajur
+                                        </span>
+                                    @elseif($item->status == 'pending_wadir')
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5"></span> Menunggu Wadir
                                         </span>
                                     @elseif($item->status == 'approved')
                                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
                                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span> Disetujui
                                         </span>
-                                    @else
+                                    @elseif($item->status == 'rejected')
                                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-rose-100 text-rose-800 border border-rose-200">
                                             <span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1.5"></span> Ditolak
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-800 border border-slate-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-500 mr-1.5"></span> {{ $item->status }}
                                         </span>
                                     @endif
                                 </td>
@@ -486,12 +502,12 @@
                                             $canApprove = false;
                                             if (auth()->check()) {
                                                 $userRole = auth()->user()->role;
-                                                if ($item->level == '1' && $userRole == 'laboran') $canApprove = true;
-                                                elseif ($item->level == '2' && $userRole == 'kajur') $canApprove = true;
-                                                elseif ($item->level == '3' && $userRole == 'wadir') $canApprove = true;
+                                                if ($item->status == 'pending_laboran' && $userRole == 'laboran') $canApprove = true;
+                                                elseif ($item->status == 'pending_kajur' && $userRole == 'kajur') $canApprove = true;
+                                                elseif ($item->status == 'pending_wadir' && $userRole == 'wadir') $canApprove = true;
                                             }
                                         @endphp
-                                        @if($canApprove && $item->status == 'pending')
+                                        @if($canApprove)
                                             <div class="h-6 w-px bg-slate-200 mx-1"></div>
                                             <form action="/peminjaman/{{ $item->id }}/approval-web" method="POST" class="m-0 inline-block">
                                                 @csrf

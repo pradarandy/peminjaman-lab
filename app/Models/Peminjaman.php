@@ -24,6 +24,7 @@ class Peminjaman extends Model
         'keterangan',
         'daftar_nama',
         'pembimbing',
+        'email_pembimbing',
         'ketua_kegiatan',
         'kontak_ketua',
         'level', // 1, 2, 3

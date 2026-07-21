@@ -213,9 +213,15 @@
                         </div>
                     </div>
                     
-                    <div class="space-y-2 pb-4">
-                        <label class="block text-sm font-semibold text-slate-700">Pembimbing <span class="text-red-500">*</span></label>
-                        <input type="text" name="pembimbing" class="block w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" placeholder="Nama Pembimbing" required>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-4">
+                        <div class="space-y-2">
+                            <label class="block text-sm font-semibold text-slate-700">Nama Pembimbing <span class="text-red-500">*</span></label>
+                            <input type="text" name="pembimbing" class="block w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" placeholder="Nama Pembimbing" required>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="block text-sm font-semibold text-slate-700">Email Pembimbing <span class="text-red-500">*</span></label>
+                            <input type="email" name="email_pembimbing" class="block w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" placeholder="email@pembimbing.com" required>
+                        </div>
                     </div>
 
                     <div class="pt-4 border-t border-slate-200">

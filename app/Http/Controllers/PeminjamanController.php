@@ -57,7 +57,7 @@ class PeminjamanController extends Controller
             // 1.6 Cek Bentrok Peminjaman Insidental Lainnya
             $bentrokPeminjaman = Peminjaman::whereJsonContains('id_lab', (string)$lab_id)
                 ->whereDate('tgl_mulai', $request->tgl_mulai)
-                ->whereIn('status', ['pending', 'approved'])
+                ->whereIn('status', ['pending_pembimbing', 'pending_laboran', 'pending_kajur', 'pending_wadir', 'approved'])
                 ->where(function ($query) use ($request) {
                     $query->where('jam_mulai', '<', $request->jam_selesai)
                           ->where('jam_selesai', '>', $request->jam_mulai);
@@ -104,7 +104,7 @@ class PeminjamanController extends Controller
             'ketua_kegiatan' => $request->ketua_kegiatan,
             'kontak_ketua' => $request->kontak_ketua,
             'level' => $level,
-            'status' => 'pending', //status awal selalu pending
+            'status' => 'pending_pembimbing', //status awal selalu pending_pembimbing
         ]);
 
         //4. Return response 
@@ -142,6 +142,7 @@ class PeminjamanController extends Controller
             'pembimbing' => 'required|string',
             'ketua_kegiatan' => 'required|string',
             'kontak_ketua' => 'required|string',
+            'email_pembimbing' => 'required|email',
             'nim' => 'required|string',
         ]);
 
@@ -174,7 +175,7 @@ class PeminjamanController extends Controller
             // 1.6 Cek Bentrok Peminjaman Insidental Lainnya
             $bentrokPeminjaman = Peminjaman::whereJsonContains('id_lab', (string)$lab_id)
                 ->whereDate('tgl_mulai', $request->tgl_mulai)
-                ->whereIn('status', ['pending', 'approved'])
+                ->whereIn('status', ['pending_pembimbing', 'pending_laboran', 'pending_kajur', 'pending_wadir', 'approved'])
                 ->where(function ($query) use ($request) {
                     $query->where('jam_mulai', '<', $request->jam_selesai)
                           ->where('jam_selesai', '>', $request->jam_mulai);
@@ -211,39 +212,22 @@ class PeminjamanController extends Controller
             'keterangan' => $request->keterangan,
             'daftar_nama' => array_map('strval', $request->daftar_nama),
             'pembimbing' => $request->pembimbing,
+            'email_pembimbing' => $request->email_pembimbing,
             'ketua_kegiatan' => $request->ketua_kegiatan,
             'kontak_ketua' => $request->kontak_ketua,
             'level' => $level,
-            'status' => 'pending', //status awal selalu pending
+            'status' => 'pending_pembimbing', //status awal selalu pending_pembimbing
         ]);
 
-         //Logika Pengiriman Email
-            $role_tujuan = '';
-            if ($level == '1') {
-                $role_tujuan = 'laboran';
-            } elseif ($level == '2') {
-                $role_tujuan = 'kajur';
-            }elseif ($level == '3') {
-                $role_tujuan = 'wadir';
-            }
+        // Kirim email persetujuan pertama kali ke Pembimbing
+        $mahasiswa = Auth::user();
+        $approveUrl = \Illuminate\Support\Facades\URL::signedRoute('peminjaman.email_approve', ['id' => $peminjaman_baru->id]);
+        $rejectUrl = \Illuminate\Support\Facades\URL::signedRoute('peminjaman.email_reject', ['id' => $peminjaman_baru->id]);
 
-         //Cari data akun yang menjabat role tersebut di database
-         $approver = User::where('role', $role_tujuan)->first();
-
-         //jika akun/email approver ditemukan, kirim email
-         if ($approver && $approver->email) {
-         //mengambil data mahasiswa yang sedang login   
-         $mahasiswa = Auth::user();
-
-            // Generate Signed URLs untuk fitur One-Click Approval Email
-            $approveUrl = \Illuminate\Support\Facades\URL::signedRoute('peminjaman.email_approve', ['id' => $peminjaman_baru->id]);
-            $rejectUrl = \Illuminate\Support\Facades\URL::signedRoute('peminjaman.email_reject', ['id' => $peminjaman_baru->id]);
-
-            Mail::to($approver->email)->send(new NotifikasiPeminjamanMail($peminjaman_baru, $mahasiswa, $approveUrl, $rejectUrl));
-         }
+        Mail::to($request->email_pembimbing)->send(new NotifikasiPeminjamanMail($peminjaman_baru, $mahasiswa, $approveUrl, $rejectUrl));
 
         //4. Redirect kembali ke halaman dashboard dengan pesan sukses
-        return redirect('/dashboard')->with('success', 'Pengajuan peminjaman berhasil dikirim dan menunggu persetujuan');
+        return redirect('/dashboard')->with('success', 'Pengajuan peminjaman berhasil dikirim dan menunggu persetujuan Pembimbing');
 
     }
 
@@ -280,7 +264,7 @@ class PeminjamanController extends Controller
 
         // 1. Cari jadwal Peminjaman (Insidental)
         $queryPeminjaman = Peminjaman::query()
-                    ->whereIn('status', ['pending', 'approved'])
+                    ->whereIn('status', ['pending_pembimbing', 'pending_laboran', 'pending_kajur', 'pending_wadir', 'approved'])
                     ->whereDate('tgl_mulai', $tanggal);
         if ($id_lab) {
             $queryPeminjaman->whereJsonContains('id_lab', strval($id_lab));
@@ -311,11 +295,48 @@ class PeminjamanController extends Controller
     {
         $peminjaman = Peminjaman::findOrFail($id);
         
-        if ($peminjaman->status != 'pending') {
+        if (in_array($peminjaman->status, ['approved', 'rejected'])) {
             return view('peminjaman.email_action', ['status' => 'expired', 'peminjaman' => $peminjaman]);
         }
 
-        $peminjaman->update(['status' => 'approved']);
+        $level = $peminjaman->level;
+        $statusSekarang = $peminjaman->status;
+        $role_tujuan_selanjutnya = '';
+        
+        if ($statusSekarang == 'pending_pembimbing') {
+            $peminjaman->status = 'pending_laboran';
+            $role_tujuan_selanjutnya = 'laboran';
+        } elseif ($statusSekarang == 'pending_laboran') {
+            if ($level == '1') {
+                $peminjaman->status = 'approved';
+            } else {
+                $peminjaman->status = 'pending_kajur';
+                $role_tujuan_selanjutnya = 'kajur';
+            }
+        } elseif ($statusSekarang == 'pending_kajur') {
+            if ($level == '2') {
+                $peminjaman->status = 'approved';
+            } else {
+                $peminjaman->status = 'pending_wadir';
+                $role_tujuan_selanjutnya = 'wadir';
+            }
+        } elseif ($statusSekarang == 'pending_wadir') {
+            $peminjaman->status = 'approved';
+        }
+        
+        $peminjaman->save();
+
+        // Kirim email ke approver selanjutnya jika ada
+        if ($peminjaman->status != 'approved' && $role_tujuan_selanjutnya != '') {
+            $approver = \App\Models\User::where('role', $role_tujuan_selanjutnya)->first();
+            if ($approver && $approver->email) {
+                $mahasiswa = $peminjaman->user;
+                $approveUrl = \Illuminate\Support\Facades\URL::signedRoute('peminjaman.email_approve', ['id' => $peminjaman->id]);
+                $rejectUrl = \Illuminate\Support\Facades\URL::signedRoute('peminjaman.email_reject', ['id' => $peminjaman->id]);
+                \Illuminate\Support\Facades\Mail::to($approver->email)->send(new \App\Mail\NotifikasiPeminjamanMail($peminjaman, $mahasiswa, $approveUrl, $rejectUrl));
+            }
+        }
+
         return view('peminjaman.email_action', ['status' => 'approved', 'peminjaman' => $peminjaman]);
     }
 
@@ -324,7 +345,7 @@ class PeminjamanController extends Controller
     {
         $peminjaman = Peminjaman::findOrFail($id);
         
-        if ($peminjaman->status != 'pending') {
+        if (in_array($peminjaman->status, ['approved', 'rejected'])) {
             return view('peminjaman.email_action', ['status' => 'expired', 'peminjaman' => $peminjaman]);
         }
 

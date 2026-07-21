@@ -56,19 +56,35 @@
             </div>
             
             <div>
-                @if($peminjaman->status == 'pending')
+                @if($peminjaman->status == 'pending_pembimbing')
                     <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-amber-100 text-amber-800 border border-amber-200">
-                        <span class="w-2 h-2 rounded-full bg-amber-500 mr-2"></span> Menunggu Persetujuan
+                        <span class="w-2 h-2 rounded-full bg-amber-500 mr-2"></span> Menunggu Pembimbing
+                    </span>
+                @elseif($peminjaman->status == 'pending_laboran')
+                    <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                        <span class="w-2 h-2 rounded-full bg-amber-500 mr-2"></span> Menunggu Laboran
+                    </span>
+                @elseif($peminjaman->status == 'pending_kajur')
+                    <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                        <span class="w-2 h-2 rounded-full bg-amber-500 mr-2"></span> Menunggu Kajur
+                    </span>
+                @elseif($peminjaman->status == 'pending_wadir')
+                    <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                        <span class="w-2 h-2 rounded-full bg-amber-500 mr-2"></span> Menunggu Wadir
                     </span>
                 @elseif($peminjaman->status == 'approved')
                     <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
                         <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         Disetujui
                     </span>
-                @else
+                @elseif($peminjaman->status == 'rejected')
                     <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-rose-100 text-rose-800 border border-rose-200">
                         <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         Ditolak
+                    </span>
+                @else
+                    <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-slate-100 text-slate-800 border border-slate-200">
+                        {{ $peminjaman->status }}
                     </span>
                 @endif
             </div>
@@ -149,12 +165,12 @@
             $canApprove = false;
             if (auth()->check()) {
                 $userRole = auth()->user()->role;
-                if ($peminjaman->level == '1' && $userRole == 'laboran') $canApprove = true;
-                elseif ($peminjaman->level == '2' && $userRole == 'kajur') $canApprove = true;
-                elseif ($peminjaman->level == '3' && $userRole == 'wadir') $canApprove = true;
+                if ($peminjaman->status == 'pending_laboran' && $userRole == 'laboran') $canApprove = true;
+                elseif ($peminjaman->status == 'pending_kajur' && $userRole == 'kajur') $canApprove = true;
+                elseif ($peminjaman->status == 'pending_wadir' && $userRole == 'wadir') $canApprove = true;
             }
         @endphp
-        @if($canApprove && $peminjaman->status == 'pending')
+        @if($canApprove)
         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 text-center mb-10">
             <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-100">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>

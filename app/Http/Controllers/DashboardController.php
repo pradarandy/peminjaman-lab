@@ -21,19 +21,19 @@ class DashboardController extends Controller
             $query->where('id_user', $user->id_user);
            }
            elseif ($user->role === 'laboran') {
-            //Laboran hanya mengurus level 1 atau melihat peminjamannya sendiri
+            //Laboran bisa melihat semua peminjaman (karena semua peminjaman melewati Laboran minimal)
             $query->where(function($q) use ($user) {
-                $q->where('level', '1')->orWhere('id_user', $user->id_user);
+                $q->whereIn('level', ['1', '2', '3'])->orWhere('id_user', $user->id_user);
             });
            }
            elseif ($user->role === 'kajur') {
-            //kajur hanya mengurus level 2 atau melihat peminjamannya sendiri
+            //Kajur melihat peminjaman level 2 dan 3
             $query->where(function($q) use ($user) {
-                $q->where('level', '2')->orWhere('id_user', $user->id_user);
+                $q->whereIn('level', ['2', '3'])->orWhere('id_user', $user->id_user);
             });
            }
            elseif ($user->role === 'wadir') {
-            //wadir mengurus level 3 atau melihat peminjamannya sendiri
+            //Wadir hanya melihat peminjaman level 3
             $query->where(function($q) use ($user) {
                 $q->where('level', '3')->orWhere('id_user', $user->id_user);
             });
@@ -60,11 +60,13 @@ class DashboardController extends Controller
         $totalBulanIni = $globalRiwayat->count();
 
         // 2. Peminjaman Menunggu Persetujuan (Global, Bulan Ini)
-        $menungguPersetujuan = $globalRiwayat->where('status', 'pending')->count();
+        $menungguPersetujuan = $globalRiwayat->filter(function($item) {
+            return str_contains($item->status, 'pending');
+        })->count();
 
         // 3. Pie Chart: Rasio Status (Global, Bulan Ini)
         $statusCounts = [
-            'pending' => $globalRiwayat->where('status', 'pending')->count(),
+            'pending' => $menungguPersetujuan,
             'approved' => $globalRiwayat->where('status', 'approved')->count(),
             'rejected' => $globalRiwayat->where('status', 'rejected')->count(),
         ];
