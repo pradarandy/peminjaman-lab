@@ -14,6 +14,7 @@ Route::get('/', function () {
 //Halaman Dashboard sekarang publik (tidak wajib login)
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/peminjaman/detail/{id}', [PeminjamanController::class, 'showWeb'])->name('peminjaman.show');
+Route::get('/peminjaman/print/{id}', [PeminjamanController::class, 'printWeb'])->name('peminjaman.print');
 Route::get('/cek-status', [PeminjamanController::class, 'cekStatus'])->name('peminjaman.cek_status');
 
 // Rute untuk One-Click Approval Email (Menggunakan Signed URLs)

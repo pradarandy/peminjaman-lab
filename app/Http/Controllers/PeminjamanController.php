@@ -244,6 +244,19 @@ class PeminjamanController extends Controller
         return view('peminjaman.show', compact('peminjaman', 'mahasiswa'));
     }
 
+    public function printWeb($id)
+    {
+        $peminjaman = Peminjaman::with(['user'])->findOrFail($id);
+        
+        // Cek apakah sudah disetujui (Opsional: bisa diaktifkan jika hanya yang disetujui yang boleh dicetak)
+        // if ($peminjaman->status != 'approved') {
+        //     return back()->withErrors('Bukti peminjaman hanya bisa dicetak setelah disetujui sepenuhnya.');
+        // }
+        
+        $mahasiswa = $peminjaman->user;
+        return view('peminjaman.print', compact('peminjaman', 'mahasiswa'));
+    }
+
     // 4. Fitur Cek Status Ruangan
     public function cekStatus(Request $request)
     {

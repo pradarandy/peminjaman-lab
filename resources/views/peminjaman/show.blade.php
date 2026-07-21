@@ -35,11 +35,17 @@
                         <span class="font-bold text-lg tracking-tight text-primary">Sistem Peminjaman Lab</span>
                     </a>
                 </div>
-                <div class="flex items-center">
+                <div class="flex items-center gap-3">
                     <a href="/dashboard" class="inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-xl text-slate-700 bg-white hover:bg-slate-50 shadow-sm transition-all gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                         Kembali
                     </a>
+                    @if($peminjaman->status == 'approved')
+                    <a href="/peminjaman/print/{{ $peminjaman->id }}" target="_blank" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-700 shadow-sm shadow-blue-200 transition-all gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                        Cetak Bukti
+                    </a>
+                    @endif
                 </div>
             </div>
         </div>
@@ -87,6 +93,79 @@
                         {{ $peminjaman->status }}
                     </span>
                 @endif
+            </div>
+        </div>
+
+        <!-- Approval Stepper -->
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 mb-8 overflow-x-auto">
+            <h3 class="text-sm font-bold text-slate-900 mb-6 tracking-tight">Jejak Persetujuan</h3>
+            
+            @php
+                $statusList = ['pending_pembimbing', 'pending_laboran', 'pending_kajur', 'pending_wadir', 'approved'];
+                $currentIndex = array_search($peminjaman->status, $statusList);
+                if ($peminjaman->status == 'rejected') {
+                    $currentIndex = -1; // Special case
+                }
+
+                $steps = [
+                    ['name' => 'Pembimbing', 'status_key' => 'pending_pembimbing', 'index' => 0],
+                    ['name' => 'Laboran', 'status_key' => 'pending_laboran', 'index' => 1]
+                ];
+                if ($peminjaman->level == '2' || $peminjaman->level == '3') {
+                    $steps[] = ['name' => 'Kajur', 'status_key' => 'pending_kajur', 'index' => 2];
+                }
+                if ($peminjaman->level == '3') {
+                    $steps[] = ['name' => 'Wadir', 'status_key' => 'pending_wadir', 'index' => 3];
+                }
+            @endphp
+
+            <div class="flex items-center w-full min-w-max">
+                @foreach($steps as $key => $step)
+                    @php
+                        // Determine step visual state
+                        $isCompleted = ($currentIndex > $step['index']) || ($peminjaman->status == 'approved');
+                        $isActive = ($currentIndex === $step['index']);
+                        $isRejected = ($peminjaman->status == 'rejected' && $currentIndex === -1);
+                        
+                        $circleBg = 'bg-slate-100 text-slate-400';
+                        $circleBorder = 'border-slate-200';
+                        $textColor = 'text-slate-500';
+                        $icon = '<span class="font-semibold text-sm">'.($key+1).'</span>';
+                        $statusText = 'Belum Diproses';
+
+                        if ($isCompleted) {
+                            $circleBg = 'bg-emerald-50 text-emerald-500';
+                            $circleBorder = 'border-emerald-200';
+                            $textColor = 'text-emerald-700';
+                            $icon = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>';
+                            $statusText = 'Disetujui';
+                        } elseif ($isActive) {
+                            $circleBg = 'bg-amber-50 text-amber-500';
+                            $circleBorder = 'border-amber-200';
+                            $textColor = 'text-amber-700 font-bold';
+                            $statusText = 'Menunggu';
+                            // If rejected, the step that was supposed to be next is marked as rejected instead? 
+                            // Actually, if rejected, we just stop. Let's make it simple.
+                        } elseif ($isRejected) {
+                            // If the document is rejected, maybe we just show a red badge somewhere else.
+                            // The current active step at the time of rejection is hard to track without an approval table log.
+                        }
+                    @endphp
+                    
+                    <div class="flex flex-col items-center relative z-10 w-32">
+                        <div class="w-10 h-10 rounded-full border-2 flex items-center justify-center bg-white shadow-sm transition-all {{ $circleBg }} {{ $circleBorder }}">
+                            {!! $icon !!}
+                        </div>
+                        <div class="mt-3 text-center">
+                            <div class="text-xs font-bold uppercase tracking-wider {{ $textColor }}">{{ $step['name'] }}</div>
+                            <div class="text-[10px] font-medium text-slate-400 mt-1">{{ $statusText }}</div>
+                        </div>
+                    </div>
+
+                    @if($key !== count($steps) - 1)
+                        <div class="flex-1 h-0.5 bg-slate-200 mx-2 {{ $isCompleted ? 'bg-emerald-300' : '' }}"></div>
+                    @endif
+                @endforeach
             </div>
         </div>
 
