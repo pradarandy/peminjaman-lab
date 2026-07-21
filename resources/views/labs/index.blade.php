@@ -100,6 +100,10 @@
                                         <input type="text" name="nama" class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:bg-white outline-none transition-all" placeholder="Misal: Lab Komputer Dasar" required>
                                     </div>
                                     <div class="space-y-2">
+                                        <label class="block text-sm font-semibold text-slate-700">PIC Lab</label>
+                                        <input type="text" name="pic" class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:bg-white outline-none transition-all" placeholder="Misal: Budi Santoso, M.Kom">
+                                    </div>
+                                    <div class="space-y-2">
                                         <label class="block text-sm font-semibold text-slate-700">Status Awal</label>
                                         <select name="status" class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:bg-white outline-none transition-all" required>
                                             <option value="tersedia">Tersedia</option>
@@ -126,6 +130,7 @@
                         <tr>
                             <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider w-16">ID</th>
                             <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Nama Lab</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">PIC Lab</th>
                             <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
                             <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider w-48">Aksi</th>
                         </tr>
@@ -135,6 +140,7 @@
                             <tr class="hover:bg-slate-50/80 transition-colors" x-data="{ isEditModalOpen: false }">
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 text-center">{{ $lab->id_lab }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900">{{ $lab->nama }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{{ $lab->pic ?? '-' }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
                                     @if($lab->status == 'tersedia')
                                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200">Tersedia</span>
@@ -181,6 +187,10 @@
                                                             <div class="space-y-2">
                                                                 <label class="block text-sm font-semibold text-slate-700">Nama Lab</label>
                                                                 <input type="text" name="nama" value="{{ $lab->nama }}" class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:bg-white outline-none transition-all" required>
+                                                            </div>
+                                                            <div class="space-y-2">
+                                                                <label class="block text-sm font-semibold text-slate-700">PIC Lab</label>
+                                                                <input type="text" name="pic" value="{{ $lab->pic }}" class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:bg-white outline-none transition-all">
                                                             </div>
                                                             <div class="space-y-2">
                                                                 <label class="block text-sm font-semibold text-slate-700">Status</label>

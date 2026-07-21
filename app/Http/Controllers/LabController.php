@@ -31,11 +31,13 @@ class LabController extends Controller
 
         $request->validate([
             'nama' => 'required|string|max:255',
+            'pic' => 'nullable|string|max:255',
             'status' => 'required|in:tersedia,digunakan,maintenance',
         ]);
 
         Lab::create([
             'nama' => $request->nama,
+            'pic' => $request->pic,
             'status' => $request->status,
         ]);
 
@@ -52,12 +54,14 @@ class LabController extends Controller
 
         $request->validate([
             'nama' => 'required|string|max:255',
+            'pic' => 'nullable|string|max:255',
             'status' => 'required|in:tersedia,digunakan,maintenance',
         ]);
 
         $lab = Lab::findOrFail($id);
         $lab->update([
             'nama' => $request->nama,
+            'pic' => $request->pic,
             'status' => $request->status,
         ]);
 

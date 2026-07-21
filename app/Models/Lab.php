@@ -12,7 +12,7 @@ class Lab extends Model
 
     protected $fillable = [
         'nama',
+        'pic',
         'status',
-        
     ];
 }
