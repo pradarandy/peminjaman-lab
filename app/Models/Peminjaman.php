@@ -10,7 +10,8 @@ class Peminjaman extends Model
     use HasFactory;
 
     protected $table ='peminjaman';
-    // protected $primaryKey = 'id'; // Default Laravel sudah 'id', jadi baris ini opsional
+    // protected $primaryKey = 'id';
+    // // Default Laravel sudah 'id', jadi baris ini opsional
     public $timestamps = false;
 
     protected $fillable = [

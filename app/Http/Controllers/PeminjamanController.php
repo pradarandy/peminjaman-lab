@@ -265,12 +265,14 @@ class PeminjamanController extends Controller
 
         $labs = Lab::all();
         
+        //Overloading
         // Default pencarian adalah hari ini jika belum memilih
         if (!$tanggal) {
             $tanggal = Carbon::today()->toDateString();
         }
 
         // Tentukan Hari dalam Bahasa Indonesia
+        //Overloading
         $map_hari = [
             'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu', 
             'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu', 'Sunday' => 'Minggu'

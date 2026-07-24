@@ -12,8 +12,8 @@ class DashboardController extends Controller
     {
        $user = Auth::user(); //ambil data orang yang sedang login
 
-       //Query untuk mengurutkan dari yang terbaru
-       $query = Peminjaman::orderBy('tgl_mulai', 'desc');
+       //Query untuk mengurutkan dari yang terbaru (berdasarkan id)
+       $query = Peminjaman::orderBy('id', 'desc');
 
        if ($user) {
            if($user->role === 'mahasiswa') {
