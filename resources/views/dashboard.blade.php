@@ -272,23 +272,23 @@
                             
                             <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4 border-b border-slate-100">
                                 <div class="flex items-center justify-between">
-                                    <h3 class="text-xl font-bold leading-6 text-slate-900" id="modal-title">Pendaftaran RFID Mahasiswa</h3>
+                                    <h3 class="text-xl font-bold leading-6 text-slate-900" id="modal-title">Pendaftaran RFID Pengguna</h3>
                                     <button @click="rfidModal = false" type="button" class="text-slate-400 hover:text-slate-500">
                                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                     </button>
                                 </div>
-                                <p class="text-slate-500 text-sm mt-2">Pilih mahasiswa dan arahkan kursor ke kolom UID, lalu tempelkan KTM ke alat scanner USB.</p>
+                                <p class="text-slate-500 text-sm mt-2">Pilih pengguna dan arahkan kursor ke kolom UID, lalu tempelkan kartu ke alat scanner USB.</p>
                             </div>
 
                             <form action="{{ route('admin.rfid.update') }}" method="POST">
                                 @csrf
                                 <div class="px-6 py-6 space-y-4">
                                     <div class="space-y-2 pb-2">
-                                        <label class="block text-sm font-semibold text-slate-700">Pilih Mahasiswa</label>
+                                        <label class="block text-sm font-semibold text-slate-700">Pilih Pengguna</label>
                                         <select name="id_user" class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-primary/20 focus:bg-white outline-none transition-all" required>
-                                            <option value="" selected disabled>-- Pilih Mahasiswa --</option>
-                                            @foreach($allUsers->where('role', 'mahasiswa') as $mhs)
-                                                <option value="{{ $mhs->id_user }}">{{ $mhs->username }} {{ $mhs->nim ? '('.$mhs->nim.')' : '' }}</option>
+                                            <option value="" selected disabled>-- Pilih Pengguna --</option>
+                                            @foreach($allUsers as $usr)
+                                                <option value="{{ $usr->id_user }}">{{ $usr->username }} ({{ ucfirst($usr->role) }})</option>
                                             @endforeach
                                         </select>
                                     </div>
