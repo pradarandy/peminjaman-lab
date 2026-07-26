@@ -44,7 +44,10 @@ class PintuLabController extends Controller
         $jam_sekarang = $now->format('H:i:s');
 
         // Cek apakah mahasiswa ini memiliki jadwal peminjaman 'approved' hari ini dan pada jam ini
-        $peminjaman = Peminjaman::where('id_user', $user->id_user)
+        $peminjaman = Peminjaman::where(function($query) use ($user) {
+                $query->where('id_user', $user->id_user)
+                      ->orWhereJsonContains('daftar_nama', (string)$user->id_user);
+            })
             ->where('status', 'approved')
             ->where('tgl_mulai', '<=', $tanggal_sekarang)
             ->where('tgl_selesai', '>=', $tanggal_sekarang)
