@@ -195,7 +195,7 @@
                         <label class="block text-sm font-semibold text-slate-700">Daftar Nama Peserta <span class="text-red-500">*</span></label>
                         <select name="daftar_nama[]" class="select2 block w-full" multiple="multiple" data-placeholder="-- Pilih Mahasiswa --" required>
                             @foreach($mahasiswas as $mhs)
-                                <option value="{{ $mhs->id_user }}">{{ $mhs->username }} {{ $mhs->nim ? '('.$mhs->nim.')' : '' }}</option>
+                                <option value="{{ $mhs->id_user }}">{{ $mhs->nim ? $mhs->nim . ' - ' : '' }}{{ $mhs->username }}</option>
                             @endforeach
                         </select>
                     </div>
